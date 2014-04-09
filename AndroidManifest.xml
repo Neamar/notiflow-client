@@ -49,6 +49,11 @@
                 <category android:name="com.example.gcm" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".DismissNotification" >
+            <intent-filter>
+                <action android:name="notification_cancelled" />
+            </intent-filter>
+        </receiver>
 
         <service android:name="fr.neamar.notiflow.GcmIntentService" />
     </application>

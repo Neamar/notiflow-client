@@ -24,6 +24,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -90,20 +91,59 @@ public class GcmIntentService extends IntentService {
 
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, flowdockIntent, 0);
 
+		Intent intent = new Intent(this, DismissNotification.class);
+		intent.setAction("notification_cancelled");
+		PendingIntent dismissIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
 		mBuilder.setSmallIcon(R.drawable.ic_launcher);
 		mBuilder.setContentTitle("Notiflow");
-		mBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(msg));
+		
+		
+		SharedPreferences prefs = this.getSharedPreferences(DismissNotification.STORAGE_COLLECTION, Context.MODE_PRIVATE);
+		String currentNotification = prefs.getString(DismissNotification.PROPERTY_NOTIFICATION, "");
+		
+		// We have a pending notification. We'll need to update it.
+		if(!currentNotification.isEmpty()) {
+			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+			style.addLine(msg);
+			
+			// Read previous messages
+			for(int i = 0; i < 4; i++) {
+				String prevMessage = prefs.getString(DismissNotification.getPreviousMessageKey(i), "");
+				if(prevMessage.isEmpty()) {
+					break;
+				}
+				style.addLine(prevMessage);
+			}
+			
+			// Overwrite previous messages
+			SharedPreferences.Editor editor = prefs.edit();
+			for(int i = 3; i > 0; i--) {
+				editor.putString(
+					DismissNotification.getPreviousMessageKey(i),
+					prefs.getString(DismissNotification.getPreviousMessageKey(i - 1), ""));
+			}
+			editor.commit();
+			
+			mBuilder.setStyle(style);
+		}
+		
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putString(DismissNotification.getPreviousMessageKey(0), msg);
+		editor.putString(DismissNotification.PROPERTY_NOTIFICATION, "runnning");
+		editor.commit();
+		
+		
 		mBuilder.setContentText(msg);
+		mBuilder.setAutoCancel(true);
 		mBuilder.setContentIntent(contentIntent);
+		mBuilder.setDeleteIntent(dismissIntent);
 		mBuilder.setTicker(Html.fromHtml(msg));
 
 		Notification notification = mBuilder.build();
 		notification.defaults |= Notification.DEFAULT_VIBRATE;
 
-		// cancel notification after click
-		notification.flags |= Notification.FLAG_AUTO_CANCEL;
-		
 		mNotificationManager.notify(NOTIFICATION_ID, notification);
 	}
 }

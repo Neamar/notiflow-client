@@ -36,9 +36,11 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -50,7 +52,8 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
  */
 public class MainActivity extends Activity {
 
-	public static final String PROPERTY_REG_ID = "registration_id";
+	public static final String PROPERTY_GCM_TOKEN = "gcm_token";
+	public static final String PROPERTY_FLOWDOCK_TOKEN = "flowdock_token";
 	private static final String PROPERTY_APP_VERSION = "appVersion";
 	private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
@@ -75,6 +78,8 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_main);
+		TextView mainActivityDescription = (TextView) findViewById(R.id.mainActivityDescription);
+		mainActivityDescription.setText(Html.fromHtml(getString(R.string.activity_main_description)));
 
 		context = getApplicationContext();
 
@@ -82,8 +87,7 @@ public class MainActivity extends Activity {
 		// GCM registration.
 		if (checkPlayServices()) {
 			gcm = GoogleCloudMessaging.getInstance(this);
-			regid = getRegistrationId(context);
-			Log.i(TAG, "GCM ID: " + regid);
+			regid = getGcmToken(context);
 			if (regid.isEmpty()) {
 				registerInBackground();
 			}
@@ -102,11 +106,10 @@ public class MainActivity extends Activity {
 
 	// Send an upstream message.
 	public void onClick(final View view) {
-		Log.i(TAG, "ONJOUR");
 		if (view == findViewById(R.id.submitTokenButton)) {
 			EditText flowdockTokenInput = (EditText) findViewById(R.id.flowdockTokenInput);
 			final String flowdockToken = flowdockTokenInput.getText().toString();
-			final String gcmToken = getRegistrationId(this);
+			final String gcmToken = getGcmToken(this);
 			
 			new AsyncTask<Void, Void, String>() {
 				@Override
@@ -116,12 +119,16 @@ public class MainActivity extends Activity {
 					if (!flowdockToken.matches(pattern)) {
 						return "Token must be a 32 character hexadecimal string";
 					}
+					storeFlowdockToken(MainActivity.this, flowdockToken);
 					
 					// Check we have a GCM id
-					if(gcmToken.equals("")) {
+					if(gcmToken.isEmpty()) {
 						return "GCM token still generating. Please wait a few seconds, check your connection and retry.";
 					}
-
+					
+					Log.i(TAG, "Registering flowdockToken: " + flowdockToken);
+					Log.i(TAG, "Registering GCM token: " + gcmToken);
+					
 					// Create a new HttpClient and Post Header
 					HttpClient httpclient = new DefaultHttpClient();
 					HttpPost httppost = new HttpPost("http://localhost:8000/init");
@@ -134,7 +141,7 @@ public class MainActivity extends Activity {
 						httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
 						// Execute HTTP Post Request
-						HttpResponse response = httpclient.execute(httppost);
+						httpclient.execute(httppost);
 					} catch (ClientProtocolException e) {
 						return e.toString();
 					} catch (IOException e) {
@@ -180,13 +187,29 @@ public class MainActivity extends Activity {
 	 * @param regId
 	 *            registration ID
 	 */
-	private void storeRegistrationId(Context context, String regId) {
-		final SharedPreferences prefs = getGcmPreferences(context);
+	private void storeRegistrationId(Context context, String gcmToken) {
+		final SharedPreferences prefs = getPreferences(context);
 		int appVersion = getAppVersion(context);
-		Log.i(TAG, "Saving regId on app version " + appVersion);
+		Log.i(TAG, "Saving gcmToken on app version " + appVersion);
 		SharedPreferences.Editor editor = prefs.edit();
-		editor.putString(PROPERTY_REG_ID, regId);
+		editor.putString(PROPERTY_GCM_TOKEN, gcmToken);
 		editor.putInt(PROPERTY_APP_VERSION, appVersion);
+		editor.commit();
+	}
+
+	/**
+	 * Stores the registration ID and the app versionCode in the application's
+	 * {@code SharedPreferences}.
+	 * 
+	 * @param context
+	 *            application's context.
+	 * @param regId
+	 *            registration ID
+	 */
+	private void storeFlowdockToken(Context context, String flowdockToken) {
+		final SharedPreferences prefs = getPreferences(context);
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putString(PROPERTY_FLOWDOCK_TOKEN, flowdockToken);
 		editor.commit();
 	}
 
@@ -199,10 +222,10 @@ public class MainActivity extends Activity {
 	 * @return registration ID, or empty string if there is no existing
 	 *         registration ID.
 	 */
-	private String getRegistrationId(Context context) {
-		final SharedPreferences prefs = getGcmPreferences(context);
-		String registrationId = prefs.getString(PROPERTY_REG_ID, "");
-		if (registrationId.isEmpty()) {
+	private String getGcmToken(Context context) {
+		final SharedPreferences prefs = getPreferences(context);
+		String gcmToken = prefs.getString(PROPERTY_GCM_TOKEN, "");
+		if (gcmToken.isEmpty()) {
 			Log.i(TAG, "Registration not found.");
 			return "";
 		}
@@ -216,7 +239,7 @@ public class MainActivity extends Activity {
 			return "";
 		}
 
-		return registrationId;
+		return gcmToken;
 	}
 
 	/**
@@ -266,7 +289,7 @@ public class MainActivity extends Activity {
 	/**
 	 * @return Application's {@code SharedPreferences}.
 	 */
-	private SharedPreferences getGcmPreferences(Context context) {
+	private SharedPreferences getPreferences(Context context) {
 		return getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);
 	}
 }

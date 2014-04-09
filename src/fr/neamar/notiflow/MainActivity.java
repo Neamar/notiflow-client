@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -81,6 +80,9 @@ public class MainActivity extends Activity {
 		TextView mainActivityDescription = (TextView) findViewById(R.id.mainActivityDescription);
 		mainActivityDescription.setText(Html.fromHtml(getString(R.string.activity_main_description)));
 
+		EditText flowdockTokenInput = (EditText) findViewById(R.id.flowdockTokenInput);
+		flowdockTokenInput.setText(getFlowdockToken(this));
+		
 		context = getApplicationContext();
 
 		// Check device for Play Services APK. If check succeeds, proceed with
@@ -242,6 +244,19 @@ public class MainActivity extends Activity {
 		return gcmToken;
 	}
 
+	/**
+	 * Gets the current flowdock token.
+	 * 
+	 * @return flowdockToken, or empty on first use
+	 */
+	private String getFlowdockToken(Context context) {
+		final SharedPreferences prefs = getPreferences(context);
+		String flowdockToken = prefs.getString(PROPERTY_FLOWDOCK_TOKEN, "");
+
+		return flowdockToken;
+	}
+	
+	
 	/**
 	 * Registers the application with GCM servers asynchronously.
 	 * <p>

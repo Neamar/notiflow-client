@@ -3,9 +3,10 @@
 
     <string name="app_name">Notiflow</string>
     <string name="activity_main_title">Register your token</string>
+    <string name="activity_main_hint">32 chars hex user token</string>
     <string name="activity_main_description">
         <![CDATA[
-        <p>Get push notifications for each one of your flow.</p>
+        <p>Get push notifications for each one of your flows.</p>
         
         <p>You\'ll need your user token.<br />
         Navigate to <a href="https://www.flowdock.com/account/tokens">flowdock.com/account/tokens</a>.</p>

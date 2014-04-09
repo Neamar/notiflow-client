@@ -15,9 +15,19 @@
  */
 package fr.neamar.notiflow;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
 import android.content.Context;
@@ -27,10 +37,13 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 /**
  * Ask for the user token
@@ -85,6 +98,58 @@ public class MainActivity extends Activity {
 		super.onResume();
 		// Check device for Play Services APK.
 		checkPlayServices();
+	}
+
+	// Send an upstream message.
+	public void onClick(final View view) {
+		Log.i(TAG, "ONJOUR");
+		if (view == findViewById(R.id.submitTokenButton)) {
+			EditText flowdockTokenInput = (EditText) findViewById(R.id.flowdockTokenInput);
+			final String flowdockToken = flowdockTokenInput.getText().toString();
+			final String gcmToken = getRegistrationId(this);
+			
+			new AsyncTask<Void, Void, String>() {
+				@Override
+				protected String doInBackground(Void... params) {
+					// Check flowdock token is valid
+					String pattern = "^[a-fA-F0-9]{32}$";
+					if (!flowdockToken.matches(pattern)) {
+						return "Token must be a 32 character hexadecimal string";
+					}
+					
+					// Check we have a GCM id
+					if(gcmToken.equals("")) {
+						return "GCM token still generating. Please wait a few seconds, check your connection and retry.";
+					}
+
+					// Create a new HttpClient and Post Header
+					HttpClient httpclient = new DefaultHttpClient();
+					HttpPost httppost = new HttpPost("http://localhost:8000/init");
+
+					try {
+						// Add your data
+						List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+						nameValuePairs.add(new BasicNameValuePair("flowdock_token", flowdockToken));
+						nameValuePairs.add(new BasicNameValuePair("gcm_token", gcmToken));
+						httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+						// Execute HTTP Post Request
+						HttpResponse response = httpclient.execute(httppost);
+					} catch (ClientProtocolException e) {
+						return e.toString();
+					} catch (IOException e) {
+						return e.toString();
+					}
+
+					return "Nice job. You're subscribed";
+				}
+
+				@Override
+				protected void onPostExecute(String msg) {
+					Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+				}
+			}.execute(null, null, null);
+		}
 	}
 
 	/**
@@ -150,7 +215,7 @@ public class MainActivity extends Activity {
 			Log.i(TAG, "App version changed.");
 			return "";
 		}
-		
+
 		return registrationId;
 	}
 

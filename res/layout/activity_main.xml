@@ -12,20 +12,21 @@
         android:text="@string/activity_main_description" />
 
     <EditText
-        android:id="@+id/editText1"
+        android:id="@+id/flowdockTokenInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:digits="0123456789ABCDEF"
+        android:digits="0123456789ABCDEFabcdef"
         android:ems="10"
-        android:inputType="textCapCharacters" >
+        android:inputType="textNoSuggestions" >
 
         <requestFocus />
     </EditText>
 
     <Button
-        android:id="@+id/sendToken"
+        android:id="@+id/submitTokenButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:onClick="onClick"
         android:text="@string/activity_main_submit" />
 
 </LinearLayout>

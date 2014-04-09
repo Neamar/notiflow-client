@@ -19,12 +19,16 @@ package fr.neamar.notiflow;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.text.Html;
 import android.util.Log;
 
 /**
@@ -79,13 +83,27 @@ public class GcmIntentService extends IntentService {
 	// This is just one simple example of what you might choose to do with
 	// a GCM message.
 	private void sendNotification(String msg) {
+		Intent flowdockIntent;
+		flowdockIntent = this.getPackageManager().getLaunchIntentForPackage("com.flowdock.jorge");
+
 		mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, flowdockIntent, 0);
 
-		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.ic_launcher).setContentTitle("Notiflow").setStyle(new NotificationCompat.BigTextStyle().bigText(msg)).setContentText(msg);
-
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
+		mBuilder.setSmallIcon(R.drawable.ic_launcher);
+		mBuilder.setContentTitle("Notiflow");
+		mBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(msg));
+		mBuilder.setContentText(msg);
 		mBuilder.setContentIntent(contentIntent);
-		mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+		mBuilder.setTicker(Html.fromHtml(msg));
+
+		Notification notification = mBuilder.build();
+		notification.defaults |= Notification.DEFAULT_VIBRATE;
+
+		// cancel notification after click
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
+		
+		mNotificationManager.notify(NOTIFICATION_ID, notification);
 	}
 }

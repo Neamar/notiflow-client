@@ -15,11 +15,14 @@
  */
 package fr.neamar.notiflow;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -77,12 +80,12 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_main);
-		TextView mainActivityDescription = (TextView) findViewById(R.id.mainActivityDescription);
-		mainActivityDescription.setText(Html.fromHtml(getString(R.string.activity_main_description)));
-
+		
+		setDescription(getString(R.string.activity_main_description));
+		
 		EditText flowdockTokenInput = (EditText) findViewById(R.id.flowdockTokenInput);
 		flowdockTokenInput.setText(getFlowdockToken(this));
-		
+
 		context = getApplicationContext();
 
 		// Check device for Play Services APK. If check succeeds, proceed with
@@ -112,8 +115,10 @@ public class MainActivity extends Activity {
 			EditText flowdockTokenInput = (EditText) findViewById(R.id.flowdockTokenInput);
 			final String flowdockToken = flowdockTokenInput.getText().toString();
 			final String gcmToken = getGcmToken(this);
-			
+
 			new AsyncTask<Void, Void, String>() {
+				private Boolean success = false;
+				
 				@Override
 				protected String doInBackground(Void... params) {
 					// Check flowdock token is valid
@@ -122,18 +127,18 @@ public class MainActivity extends Activity {
 						return "Token must be a 32 character hexadecimal string";
 					}
 					storeFlowdockToken(MainActivity.this, flowdockToken);
-					
+
 					// Check we have a GCM id
-					if(gcmToken.isEmpty()) {
+					if (gcmToken.isEmpty()) {
 						return "GCM token still generating. Please wait a few seconds, check your connection and retry.";
 					}
-					
+
 					Log.i(TAG, "Registering flowdockToken: " + flowdockToken);
 					Log.i(TAG, "Registering GCM token: " + gcmToken);
-					
+
 					// Create a new HttpClient and Post Header
 					HttpClient httpclient = new DefaultHttpClient();
-					HttpPost httppost = new HttpPost("http://localhost:8000/init");
+					HttpPost httppost = new HttpPost("http://notiflow.herokuapp.com/init");
 
 					try {
 						// Add your data
@@ -143,22 +148,46 @@ public class MainActivity extends Activity {
 						httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
 						// Execute HTTP Post Request
-						httpclient.execute(httppost);
+						HttpResponse response = httpclient.execute(httppost);
+						
+						BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+						StringBuilder builder = new StringBuilder();
+						for (String line = null; (line = reader.readLine()) != null;) {
+							builder.append(line).append("\n");
+						}
+						
+						if(response.getStatusLine().getStatusCode() == 200) {
+							success = true;
+							return "Notification are on their ways... Followed flows: " + builder.toString();
+						}
+						else {
+							String error= "Unable to match token. Error: " + builder.toString();
+							return error;
+						}
+						
+						
 					} catch (ClientProtocolException e) {
 						return e.toString();
 					} catch (IOException e) {
 						return e.toString();
 					}
-
-					return "Nice job. You're subscribed";
 				}
 
 				@Override
 				protected void onPostExecute(String msg) {
 					Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+					
+					if(success) {
+						finish();
+					}
 				}
 			}.execute(null, null, null);
 		}
+	}
+	
+	private void setDescription(String description) {
+		TextView mainActivityDescription = (TextView) findViewById(R.id.mainActivityDescription);
+		mainActivityDescription.setText(Html.fromHtml(description));
 	}
 
 	/**
@@ -255,8 +284,7 @@ public class MainActivity extends Activity {
 
 		return flowdockToken;
 	}
-	
-	
+
 	/**
 	 * Registers the application with GCM servers asynchronously.
 	 * <p>

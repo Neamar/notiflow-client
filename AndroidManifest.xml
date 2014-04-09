@@ -17,7 +17,7 @@
         android:name="fr.neamar.notiflow.gcm.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.example.gcm.permission.C2D_MESSAGE" />
+    <uses-permission android:name="fr.neamar.notiflow.permission.C2D_MESSAGE" />
 
     <application
         android:allowBackup="true"

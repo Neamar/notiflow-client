@@ -83,14 +83,14 @@ public class GcmIntentService extends IntentService {
 	// This is just one simple example of what you might choose to do with
 	// a GCM message.
 	private void sendNotification(String flow, String msg) {
-		Intent flowdockIntent;
-		flowdockIntent = this.getPackageManager().getLaunchIntentForPackage("com.flowdock.jorge");
-
 		mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, flowdockIntent, 0);
-
 		Intent intent = new Intent(this, DismissNotification.class);
+		intent.setAction("notification_clicked");
+		intent.putExtra("flow", flow);
+		PendingIntent clickedIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+		intent = new Intent(this, DismissNotification.class);
 		intent.setAction("notification_cancelled");
 		intent.putExtra("flow", flow);
 		PendingIntent dismissIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -124,7 +124,7 @@ public class GcmIntentService extends IntentService {
 		mBuilder.setContentText(Html.fromHtml(msg));
 		mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size() + 1));
 		mBuilder.setAutoCancel(true);
-		mBuilder.setContentIntent(contentIntent);
+		mBuilder.setContentIntent(clickedIntent);
 		mBuilder.setDeleteIntent(dismissIntent);
 		mBuilder.setTicker(Html.fromHtml(msg));
 

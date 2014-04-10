@@ -16,6 +16,11 @@ public class DismissNotification extends BroadcastReceiver {
 		NotificationHelper.cleanNotifications(intent.getStringExtra("flow"));
 		
 		Log.i("Notiflow", "Dismissed notification");
+		
+		if(!intent.getAction().equals("notification_cancelled")) {
+			Intent flowdockIntent = context.getPackageManager().getLaunchIntentForPackage("com.flowdock.jorge");
+			context.startActivity(flowdockIntent);
+		}
 	}
 	
 	

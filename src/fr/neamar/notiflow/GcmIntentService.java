@@ -16,6 +16,8 @@
 
 package fr.neamar.notiflow;
 
+import java.util.ArrayList;
+
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.IntentService;
@@ -25,8 +27,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.text.Html;
@@ -66,13 +66,13 @@ public class GcmIntentService extends IntentService {
 			 * don't recognize.
 			 */
 			if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
-				sendNotification("Send error: " + extras.toString());
+				sendNotification("Notiflow", "Send error: " + extras.toString());
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
-				sendNotification("Deleted messages on server: " + extras.toString());
+				sendNotification("Notiflow", "Deleted messages on server: " + extras.toString());
 				// If it's a regular GCM message, do some work.
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
 				// Post notification of received message.
-				sendNotification(extras.getString("content"));
+				sendNotification("MyFlow", extras.getString("content"));
 				Log.i(TAG, "Received: " + extras.toString());
 			}
 		}
@@ -83,7 +83,7 @@ public class GcmIntentService extends IntentService {
 	// Put the message into a notification and post it.
 	// This is just one simple example of what you might choose to do with
 	// a GCM message.
-	private void sendNotification(String msg) {
+	private void sendNotification(String flow, String msg) {
 		Intent flowdockIntent;
 		flowdockIntent = this.getPackageManager().getLaunchIntentForPackage("com.flowdock.jorge");
 
@@ -109,22 +109,14 @@ public class GcmIntentService extends IntentService {
 			style.addLine(msg);
 			
 			// Read previous messages
-			for(int i = 0; i < 4; i++) {
-				String prevMessage = prefs.getString(DismissNotification.getPreviousMessageKey(i), "");
-				if(prevMessage.isEmpty()) {
-					break;
-				}
-				style.addLine(prevMessage);
+			ArrayList<String> prevMessages = NotificationHelper.getNotifications(flow);
+			
+			for(int i = 0; i < prevMessages.size(); i++) {
+				style.addLine(prevMessages.get(i));
 			}
 			
 			// Overwrite previous messages
-			SharedPreferences.Editor editor = prefs.edit();
-			for(int i = 3; i > 0; i--) {
-				editor.putString(
-					DismissNotification.getPreviousMessageKey(i),
-					prefs.getString(DismissNotification.getPreviousMessageKey(i - 1), ""));
-			}
-			editor.commit();
+			NotificationHelper.addNotification(flow, msg);
 			
 			mBuilder.setStyle(style);
 		}

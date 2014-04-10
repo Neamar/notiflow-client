@@ -13,7 +13,7 @@ public class DismissNotification extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		
-		NotificationHelper.cleanNotifications("MyFlow");
+		NotificationHelper.cleanNotifications(intent.getStringExtra("flow"));
 		
 		Log.i("Notiflow", "Dismissed notification");
 	}

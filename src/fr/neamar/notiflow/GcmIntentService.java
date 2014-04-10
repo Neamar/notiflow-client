@@ -40,7 +40,6 @@ import android.util.Log;
  * wake lock.
  */
 public class GcmIntentService extends IntentService {
-	public static final int NOTIFICATION_ID = 1;
 	private NotificationManager mNotificationManager;
 	NotificationCompat.Builder builder;
 
@@ -72,7 +71,7 @@ public class GcmIntentService extends IntentService {
 				// If it's a regular GCM message, do some work.
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
 				// Post notification of received message.
-				sendNotification("MyFlow", extras.getString("content"));
+				sendNotification(extras.getString("flow"), extras.getString("content"));
 				Log.i(TAG, "Received: " + extras.toString());
 			}
 		}
@@ -93,11 +92,12 @@ public class GcmIntentService extends IntentService {
 
 		Intent intent = new Intent(this, DismissNotification.class);
 		intent.setAction("notification_cancelled");
+		intent.putExtra("flow", flow);
 		PendingIntent dismissIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
 		mBuilder.setSmallIcon(R.drawable.ic_launcher);
-		mBuilder.setContentTitle("Notiflow");
+		mBuilder.setContentTitle(flow);
 		
 		
 		SharedPreferences prefs = this.getSharedPreferences(DismissNotification.STORAGE_COLLECTION, Context.MODE_PRIVATE);
@@ -136,6 +136,6 @@ public class GcmIntentService extends IntentService {
 		Notification notification = mBuilder.build();
 		notification.defaults |= Notification.DEFAULT_VIBRATE;
 
-		mNotificationManager.notify(NOTIFICATION_ID, notification);
+		mNotificationManager.notify(NotificationHelper.getFlowId(flow), notification);
 	}
 }

@@ -189,6 +189,7 @@ public class MainActivity extends Activity {
 	private void setDescription(String description) {
 		TextView mainActivityDescription = (TextView) findViewById(R.id.mainActivityDescription);
 		mainActivityDescription.setText(Html.fromHtml(description));
+		mainActivityDescription.setMovementMethod(LinkMovementMethod.getInstance());
 	}
 
 	/**

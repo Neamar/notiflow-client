@@ -20,10 +20,6 @@ public class NotificationHelper {
 		ArrayList<String> flowNotifications = notifications.get(flow);
 		
 		flowNotifications.add(0, msg);
-		
-		if(notifications.get(flow).size() > 5) {
-			flowNotifications.remove(flowNotifications.size() - 1);
-		}
 	}
 	
 	/**

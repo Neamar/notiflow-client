@@ -71,7 +71,7 @@ public class GcmIntentService extends IntentService {
 				// If it's a regular GCM message, do some work.
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
 				// Post notification of received message.
-				sendNotification(extras.getString("flow"), extras.getString("content"));
+				sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: " + extras.getString("content"));
 				Log.i(TAG, "Received: " + extras.toString());
 			}
 		}
@@ -106,13 +106,13 @@ public class GcmIntentService extends IntentService {
 		// We have a pending notification. We'll need to update it.
 		if(!currentNotification.isEmpty()) {
 			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
-			style.addLine(msg);
+			style.addLine(Html.fromHtml(msg));
 			
 			// Read previous messages
 			ArrayList<String> prevMessages = NotificationHelper.getNotifications(flow);
 			
-			for(int i = 0; i < prevMessages.size(); i++) {
-				style.addLine(prevMessages.get(i));
+			for(int i = 0; i < Math.min(prevMessages.size(), 5); i++) {
+				style.addLine(Html.fromHtml(prevMessages.get(i)));
 			}
 			
 			// Overwrite previous messages
@@ -121,13 +121,8 @@ public class GcmIntentService extends IntentService {
 			mBuilder.setStyle(style);
 		}
 		
-		SharedPreferences.Editor editor = prefs.edit();
-		editor.putString(DismissNotification.getPreviousMessageKey(0), msg);
-		editor.putString(DismissNotification.PROPERTY_NOTIFICATION, "runnning");
-		editor.commit();
-		
-		
-		mBuilder.setContentText(msg);
+		mBuilder.setContentText(Html.fromHtml(msg));
+		mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size() + 1));
 		mBuilder.setAutoCancel(true);
 		mBuilder.setContentIntent(contentIntent);
 		mBuilder.setDeleteIntent(dismissIntent);

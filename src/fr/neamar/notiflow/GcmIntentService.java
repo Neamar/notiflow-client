@@ -26,7 +26,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.text.Html;
@@ -99,12 +98,8 @@ public class GcmIntentService extends IntentService {
 		mBuilder.setSmallIcon(R.drawable.ic_launcher);
 		mBuilder.setContentTitle(flow);
 		
-		
-		SharedPreferences prefs = this.getSharedPreferences(DismissNotification.STORAGE_COLLECTION, Context.MODE_PRIVATE);
-		String currentNotification = prefs.getString(DismissNotification.PROPERTY_NOTIFICATION, "");
-		
 		// We have a pending notification. We'll need to update it.
-		if(!currentNotification.isEmpty()) {
+		if(NotificationHelper.getNotifications(flow).size() > 0) {
 			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
 			style.addLine(Html.fromHtml(msg));
 			
@@ -115,11 +110,11 @@ public class GcmIntentService extends IntentService {
 				style.addLine(Html.fromHtml(prevMessages.get(i)));
 			}
 			
-			// Overwrite previous messages
-			NotificationHelper.addNotification(flow, msg);
-			
 			mBuilder.setStyle(style);
 		}
+		
+		// Overwrite previous messages
+		NotificationHelper.addNotification(flow, msg);
 		
 		mBuilder.setContentText(Html.fromHtml(msg));
 		mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size() + 1));

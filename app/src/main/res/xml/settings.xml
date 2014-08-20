@@ -5,8 +5,11 @@
         <EditTextPreference
             android:title="@string/pref_token"
             android:summary="@string/pref_token_summary"
-            android:dialogMessage="@string/pref_token_description"
             android:hint="@string/pref_token_hint"
+            android:maxLength="32"
+            android:digits="0123456789ABCDEFabcdef"
+            android:typeface="monospace"
+            android:gravity="center"
             android:key="flowdockToken"/>
     </PreferenceCategory>
 

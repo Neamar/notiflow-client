@@ -104,9 +104,8 @@ public class GcmIntentService extends IntentService {
 		// We have a pending notification. We'll need to update it.
 		if(NotificationHelper.getNotifications(flow).size() > 1) {
 			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
-			style.addLine(Html.fromHtml(msg));
-			
-			// Read previous messages
+
+			// Read messages
 			ArrayList<String> prevMessages = NotificationHelper.getNotifications(flow);
 			
 			for(int i = 0; i < Math.min(prevMessages.size(), 5); i++) {
@@ -114,7 +113,7 @@ public class GcmIntentService extends IntentService {
 			}
 			
 			mBuilder.setStyle(style);
-			mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size() + 1));
+			mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size()));
 		}
 		
 		mBuilder.setContentText(Html.fromHtml(msg));

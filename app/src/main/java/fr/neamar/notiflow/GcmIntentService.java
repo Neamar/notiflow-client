@@ -32,6 +32,7 @@ import android.util.Log;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * This {@code IntentService} does the actual handling of the GCM message.
@@ -101,7 +102,9 @@ public class GcmIntentService extends IntentService {
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
 		mBuilder.setSmallIcon(R.drawable.notification);
 		mBuilder.setContentTitle(flow);
-		
+
+        // Retrieve last modification date for this flow
+        Date lastNotification = NotificationHelper.getLastNotificationDate(flow);
 		// Overwrite previous messages
 		NotificationHelper.addNotification(flow, msg);
 		
@@ -129,7 +132,13 @@ public class GcmIntentService extends IntentService {
 		Notification notification = mBuilder.build();
 
         if(!prefs.getBoolean("prefNotifySilent", false)) {
-            notification.defaults |= Notification.DEFAULT_VIBRATE;
+            Date now = new Date();
+            if(now.getTime() - lastNotification.getTime() > Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000) {
+                notification.defaults |= Notification.DEFAULT_VIBRATE;
+            }
+            else {
+                Log.i(TAG, "Skipping vibration -- cooldown in effect.");
+            }
         }
 
 		mNotificationManager.notify(NotificationHelper.getFlowId(flow), notification);

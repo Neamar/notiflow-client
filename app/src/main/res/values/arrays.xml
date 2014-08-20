@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="notifyDelay">
+        <item name="0">Always</item>
+        <item name="15">Every 15s</item>
+        <item name="30">Every 30s</item>
+        <item name="60">Every minute</item>
+        <item name="300">Every 5 minutes</item>
+        <item name="900">Every 15 minutes</item>
+        <item name="3600">Every hour</item>
+        <item name="9999999">Never (do not vibrate again until read)</item>
+    </string-array>
+
+    <string-array name="notifyDelayValues">
+        <item name="0">0</item>
+        <item name="15">15</item>
+        <item name="30">30</item>
+        <item name="60">60</item>
+        <item name="300">300</item>
+        <item name="900">900</item>
+        <item name="3600">3600</item>
+        <item name="9999999">9999999</item>
+    </string-array>
+
+</resources>

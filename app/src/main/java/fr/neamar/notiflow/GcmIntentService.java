@@ -16,20 +16,23 @@
 
 package fr.neamar.notiflow;
 
-import java.util.ArrayList;
-
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.text.Html;
 import android.util.Log;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+
+import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * This {@code IntentService} does the actual handling of the GCM message.
@@ -82,6 +85,8 @@ public class GcmIntentService extends IntentService {
 	// This is just one simple example of what you might choose to do with
 	// a GCM message.
 	private void sendNotification(String flow, String msg) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
 		mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		Intent intent = new Intent(this, DismissNotification.class);
@@ -97,7 +102,9 @@ public class GcmIntentService extends IntentService {
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
 		mBuilder.setSmallIcon(R.drawable.notification);
 		mBuilder.setContentTitle(flow);
-		
+
+        // Retrieve last modification date for this flow
+        Date lastNotification = NotificationHelper.getLastNotificationDate(flow);
 		// Overwrite previous messages
 		NotificationHelper.addNotification(flow, msg);
 		
@@ -123,7 +130,16 @@ public class GcmIntentService extends IntentService {
 		mBuilder.setTicker(Html.fromHtml(msg));
 
 		Notification notification = mBuilder.build();
-		notification.defaults |= Notification.DEFAULT_VIBRATE;
+
+        if(!prefs.getBoolean("prefNotifySilent", false)) {
+            Date now = new Date();
+            if(now.getTime() - lastNotification.getTime() > Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000) {
+                notification.defaults |= Notification.DEFAULT_VIBRATE;
+            }
+            else {
+                Log.i(TAG, "Skipping vibration -- cooldown in effect.");
+            }
+        }
 
 		mNotificationManager.notify(NotificationHelper.getFlowId(flow), notification);
 	}

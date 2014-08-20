@@ -8,22 +8,37 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.text.Spanned;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.google.android.gms.common.GooglePlayServicesUtil.*;
+import static com.google.android.gms.common.GooglePlayServicesUtil.getErrorDialog;
+import static com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable;
+import static com.google.android.gms.common.GooglePlayServicesUtil.isUserRecoverableError;
 
 
-public class SettingActivity extends PreferenceActivity {
+public class SettingActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     public static final String PROPERTY_GCM_TOKEN = "gcm_token";
     private static final String PROPERTY_APP_VERSION = "appVersion";
@@ -53,6 +68,7 @@ public class SettingActivity extends PreferenceActivity {
 
         context = getApplicationContext();
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
 
         // UI
         addPreferencesFromResource(R.xml.settings);
@@ -62,10 +78,10 @@ public class SettingActivity extends PreferenceActivity {
 
         // UX
         if(prefs.getString("flowdockToken", "").equals("")) {
-             token.setSummary(R.string.pref_token_summary_ok);
+            Toast.makeText(this, getString(R.string.pref_token_toast), Toast.LENGTH_SHORT).show();
         }
         else {
-            Toast.makeText(this, getString(R.string.pref_token_toast), Toast.LENGTH_SHORT);
+            token.setSummary(R.string.pref_token_summary_ok);
         }
 
         // Check device for Play Services APK. If check succeeds, proceed with
@@ -87,6 +103,80 @@ public class SettingActivity extends PreferenceActivity {
         super.onResume();
         // Check device for Play Services APK.
         checkPlayServices();
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if(key.equalsIgnoreCase("flowdockToken")) {
+            final String flowdockToken = sharedPreferences.getString(key, "");
+            final String gcmToken = getGcmToken(this);
+
+            new AsyncTask<Void, Void, String>() {
+                private Boolean success = false;
+
+                @Override
+                protected String doInBackground(Void... params) {
+                    // Check flowdock token is valid
+                    String pattern = "^[a-fA-F0-9]{32}$";
+                    if (!flowdockToken.matches(pattern)) {
+                        return "Token must be a 32 character hexadecimal string";
+                    }
+
+                    // Check we have a GCM id
+                    if (gcmToken.isEmpty()) {
+                        return "GCM token still generating. Please wait a few seconds, check your connection and retry.";
+                    }
+
+                    Log.i(TAG, "Registering flowdockToken: " + flowdockToken);
+                    Log.i(TAG, "Registering GCM token: " + gcmToken);
+
+                    // Create a new HttpClient and Post Header
+                    HttpClient httpclient = new DefaultHttpClient();
+                    HttpPost httppost = new HttpPost("http://notiflow.herokuapp.com/init");
+
+                    try {
+                        // Add your data
+                        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+                        nameValuePairs.add(new BasicNameValuePair("flowdock_token", flowdockToken));
+                        nameValuePairs.add(new BasicNameValuePair("gcm_token", gcmToken));
+                        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                        // Execute HTTP Post Request
+                        HttpResponse response = httpclient.execute(httppost);
+
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+                        StringBuilder builder = new StringBuilder();
+                        for (String line = null; (line = reader.readLine()) != null;) {
+                            builder.append(line).append("\n");
+                        }
+
+                        if(response.getStatusLine().getStatusCode() == 200) {
+                            success = true;
+                            return "Notification are on their ways... Followed flows: " + builder.toString();
+                        }
+                        else {
+                            String error= "Unable to match token. Error: " + builder.toString();
+                            return error;
+                        }
+
+
+                    } catch (ClientProtocolException e) {
+                        return e.toString();
+                    } catch (IOException e) {
+                        return e.toString();
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(String msg) {
+                    Toast.makeText(SettingActivity.this, msg, Toast.LENGTH_LONG).show();
+
+                    if(success) {
+                        finish();
+                    }
+                }
+            }.execute(null, null, null);
+        }
     }
 
     /**

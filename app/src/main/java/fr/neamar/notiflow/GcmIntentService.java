@@ -95,7 +95,7 @@ public class GcmIntentService extends IntentService {
 		PendingIntent dismissIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
-		mBuilder.setSmallIcon(R.drawable.ic_launcher);
+		mBuilder.setSmallIcon(R.drawable.notification);
 		mBuilder.setContentTitle(flow);
 		
 		// Overwrite previous messages

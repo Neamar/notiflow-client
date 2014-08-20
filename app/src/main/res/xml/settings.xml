@@ -42,9 +42,9 @@
 
         <CheckBoxPreference
             android:defaultValue="false"
-            android:key="prefNotifySkipWhenActive"
-            android:summary="@string/pref_notify_skip_when_active_summary"
-            android:title="@string/pref_notify_skip_when_active" >
+            android:key="prefNotifyWhenActive"
+            android:summary="@string/pref_notify_when_active_summary"
+            android:title="@string/pref_notify_when_active" >
         </CheckBoxPreference>
     </PreferenceCategory>
 

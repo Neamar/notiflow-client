@@ -9,7 +9,7 @@
     <string name="activity_main_submit">Start Notiflow</string>
 
     <string name="pref_notify_own_messages">Notify on my messages</string>
-    <string name="pref_notify_own_messages_summary">Display a notification even for your own messages</string>
+    <string name="pref_notify_own_messages_summary">Display a notification even for my own messages</string>
     <string name="pref_notify_vibration_frequency">Vibration frequency</string>
     <string name="pref_notify_vibration_frequency_summary">Minimum delay between notifications</string>
 
@@ -28,8 +28,8 @@
     <string name="pref_notify_silent_summary">Never vibrate</string>
     <string name="pref_notify_silent">Silent mode</string>
 
-    <string name="pref_notify_skip_when_active">Notify when active on the app</string>
-    <string name="pref_notify_skip_when_active_summary">Display a notification even when you\'re already active (on desktop or mobile)</string>
+    <string name="pref_notify_when_active">Notify when active on the app</string>
+    <string name="pref_notify_when_active_summary">Display a notification even when you\'re already active (on desktop or mobile)</string>
 
     <string name="pref_token_category">User token</string>
     <string name="pref_notification_category">Notifications Settings</string>

@@ -72,9 +72,21 @@ public class GcmIntentService extends IntentService {
 				sendNotification("Notiflow", "Deleted messages on server: " + extras.toString());
 				// If it's a regular GCM message, do some work.
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+                if(!prefs.getBoolean("prefNotifyOwnMessages", false) && extras.getString("own", "false").equals("true")) {
+                    Log.i(TAG, "Skipping message (user sent): " + extras.toString());
+                    return;
+                }
+
+                if(!prefs.getBoolean("prefNotifyWhenActive", false) && extras.getString("active", "false").equals("true")) {
+                    Log.i(TAG, "Skipping message (user already active): " + extras.toString());
+                    return;
+                }
+
 				// Post notification of received message.
 				sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: " + extras.getString("content"));
-				Log.i(TAG, "Received: " + extras.toString());
+				Log.i(TAG, "Displaying message: " + extras.toString());
 			}
 		}
 		// Release the wake lock provided by the WakefulBroadcastReceiver.

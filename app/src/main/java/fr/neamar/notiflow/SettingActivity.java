@@ -146,7 +146,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 
                         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
                         StringBuilder builder = new StringBuilder();
-                        for (String line = null; (line = reader.readLine()) != null;) {
+                        for (String line; (line = reader.readLine()) != null;) {
                             builder.append(line).append("\n");
                         }
 
@@ -155,8 +155,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
                             return "Notification are on their ways... Followed flows: " + builder.toString();
                         }
                         else {
-                            String error= "Unable to match token. Error: " + builder.toString();
-                            return error;
+                            return "Unable to match token. Error: " + builder.toString();
                         }
 
 
@@ -172,7 +171,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
                     Toast.makeText(SettingActivity.this, msg, Toast.LENGTH_LONG).show();
 
                     if(success) {
-                        finish();
+                        Log.i(TAG, "Registered!");
                     }
                 }
             }.execute(null, null, null);
@@ -190,7 +189,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
             if (isUserRecoverableError(resultCode)) {
                 getErrorDialog(resultCode, this, PLAY_SERVICES_RESOLUTION_REQUEST).show();
             } else {
-                Log.i(TAG, "This device is not supported.");
+                Log.e(TAG, "This device is not supported.");
                 finish();
             }
             return false;
@@ -256,7 +255,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... params) {
-                String msg = "";
+                String msg;
                 try {
                     if (gcm == null) {
                         gcm = GoogleCloudMessaging.getInstance(context);

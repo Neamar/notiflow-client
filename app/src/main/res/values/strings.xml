@@ -25,6 +25,9 @@
         ]]>
     </string>
 
+    <string name="pref_notify_silent_summary">Never vibrate</string>
+    <string name="pref_notify_silent">Silent mode</string>
+
     <string name="pref_notify_skip_when_active">Notify when active on the app</string>
     <string name="pref_notify_skip_when_active_summary">Display a notification even when you\'re already active (on desktop or mobile)</string>
 

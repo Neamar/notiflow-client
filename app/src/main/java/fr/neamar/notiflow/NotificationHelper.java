@@ -50,7 +50,7 @@ public class NotificationHelper {
     }
 	
 	/**
-	 * Remove all stored notficiations from this flow.
+	 * Remove all stored notifications from this flow.
 	 * @param flow
 	 */
 	public static void cleanNotifications(String flow) {

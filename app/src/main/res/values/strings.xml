@@ -11,7 +11,7 @@
     <string name="pref_notify_own_messages">Notify on my messages</string>
     <string name="pref_notify_own_messages_summary">Display a notification even for my own messages</string>
     <string name="pref_notify_vibration_frequency">Vibration frequency</string>
-    <string name="pref_notify_vibration_frequency_summary">Minimum delay between notifications</string>
+    <string name="pref_notify_vibration_frequency_summary">Minimum delay between vibrations</string>
 
     <string name="pref_token">Set token</string>
     <string name="pref_token_hint">32 chars hex user token</string>
@@ -28,8 +28,8 @@
     <string name="pref_notify_silent_summary">Never vibrate</string>
     <string name="pref_notify_silent">Silent mode</string>
 
-    <string name="pref_notify_when_active">Notify when active on the app</string>
-    <string name="pref_notify_when_active_summary">Display a notification even when you\'re already active (on desktop or mobile)</string>
+    <string name="pref_notify_when_active">Vibrate when active on the app</string>
+    <string name="pref_notify_when_active_summary">Vibrate even when you\'re already active (on desktop or mobile)</string>
 
     <string name="pref_token_category">User token</string>
     <string name="pref_notification_category">Notifications Settings</string>

@@ -1,12 +1,15 @@
 package fr.neamar.notiflow;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.text.Html;
@@ -83,6 +86,19 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
         else {
             token.setSummary(R.string.pref_token_summary_ok);
         }
+
+        getPreferenceManager()
+                .findPreference("flowdockLink")
+                .setOnPreferenceClickListener(
+                        new Preference.OnPreferenceClickListener() {
+                            @Override
+                            public boolean onPreferenceClick(Preference preference) {
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setData(Uri.parse("https://www.flowdock.com/account/tokens"));
+                                startActivity(intent);
+                                return true;
+                            }
+                        });
 
         // Check device for Play Services APK. If check succeeds, proceed with
         // GCM registration.

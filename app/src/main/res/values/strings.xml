@@ -13,6 +13,9 @@
     <string name="pref_notify_vibration_frequency">Vibration frequency</string>
     <string name="pref_notify_vibration_frequency_summary">Minimum delay between vibrations</string>
 
+    <string name="pref_get_token">Retrieve API token</string>
+    <string name="pref_get_token_summary">Visit this link to get your Flowdock token</string>
+
     <string name="pref_token">Set token</string>
     <string name="pref_token_hint">32 chars hex user token</string>
     <string name="pref_token_summary">Set your Flowdock token</string>
@@ -20,7 +23,8 @@
     <string name="pref_token_summary_ok">Update your Flowdock token</string>
     <string name="pref_token_description">
         <![CDATA[
-        <p>Visit <a href="https://www.flowdock.com/account/tokens">flowdock.com/account/tokens</a></p>
+        <p>Click on «retrieve your user token» to find your 32-character API token.<br />
+        You\'ll then get push notification for any chat message in your flow.</p>
         <p><small>Warning: use your user token, not a specific flow token.</small></p>
         ]]>
     </string>

@@ -90,6 +90,7 @@ public class GcmIntentService extends IntentService {
             Log.i(TAG, "Skipping message (user sent): " + extras.toString());
             mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(NotificationHelper.getFlowId(extras.getString("flow")));
+            NotificationHelper.cleanNotifications(extras.getString("flow"));
             return;
         }
 

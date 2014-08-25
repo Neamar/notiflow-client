@@ -136,8 +136,6 @@ public class GcmIntentService extends IntentService {
 		mBuilder.setDeleteIntent(dismissIntent);
 		mBuilder.setTicker(Html.fromHtml(msg));
 
-		Notification notification = mBuilder.build();
-
         if(!prefs.getBoolean("prefNotifySilent", false)) {
             Date now = new Date();
             if(now.getTime() - lastNotification.getTime() > Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000) {
@@ -146,13 +144,15 @@ public class GcmIntentService extends IntentService {
                 }
                 else {
                     // Make it vibrate!
-                    notification.defaults |= Notification.DEFAULT_VIBRATE;
+                    mBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
                 }
             }
             else {
                 Log.i(TAG, "Skipping vibration -- cooldown in effect");
             }
         }
+
+		Notification notification = mBuilder.build();
 
 		mNotificationManager.notify(NotificationHelper.getFlowId(flow), notification);
         Log.i(TAG, "Displaying message: " + extras.toString());

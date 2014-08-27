@@ -16,20 +16,23 @@
 
 package fr.neamar.notiflow;
 
-import java.util.ArrayList;
-
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.text.Html;
 import android.util.Log;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+
+import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * This {@code IntentService} does the actual handling of the GCM message.
@@ -64,14 +67,13 @@ public class GcmIntentService extends IntentService {
 			 * don't recognize.
 			 */
 			if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
-				sendNotification("Notiflow", "Send error: " + extras.toString());
+				sendNotification("Notiflow", "Send error: " + extras.toString(), extras);
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
-				sendNotification("Notiflow", "Deleted messages on server: " + extras.toString());
+				sendNotification("Notiflow", "Deleted messages on server: " + extras.toString(), extras);
 				// If it's a regular GCM message, do some work.
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
 				// Post notification of received message.
-				sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: " + extras.getString("content"));
-				Log.i(TAG, "Received: " + extras.toString());
+				sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: " + extras.getString("content"), extras);
 			}
 		}
 		// Release the wake lock provided by the WakefulBroadcastReceiver.
@@ -81,7 +83,17 @@ public class GcmIntentService extends IntentService {
 	// Put the message into a notification and post it.
 	// This is just one simple example of what you might choose to do with
 	// a GCM message.
-	private void sendNotification(String flow, String msg) {
+	private void sendNotification(String flow, String msg, Bundle extras) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if(!prefs.getBoolean("prefNotifyOwnMessages", false) && extras.getString("own", "false").equals("true")) {
+            Log.i(TAG, "Skipping message (user sent): " + extras.toString());
+            mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.cancel(NotificationHelper.getFlowId(extras.getString("flow")));
+            NotificationHelper.cleanNotifications(extras.getString("flow"));
+            return;
+        }
+
 		mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		Intent intent = new Intent(this, DismissNotification.class);
@@ -95,18 +107,19 @@ public class GcmIntentService extends IntentService {
 		PendingIntent dismissIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
-		mBuilder.setSmallIcon(R.drawable.ic_launcher);
+		mBuilder.setSmallIcon(R.drawable.notification);
 		mBuilder.setContentTitle(flow);
-		
+
+        // Retrieve last modification date for this flow
+        Date lastNotification = NotificationHelper.getLastNotificationDate(flow);
 		// Overwrite previous messages
 		NotificationHelper.addNotification(flow, msg);
 		
 		// We have a pending notification. We'll need to update it.
 		if(NotificationHelper.getNotifications(flow).size() > 1) {
 			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
-			style.addLine(Html.fromHtml(msg));
-			
-			// Read previous messages
+
+			// Read messages
 			ArrayList<String> prevMessages = NotificationHelper.getNotifications(flow);
 			
 			for(int i = 0; i < Math.min(prevMessages.size(), 5); i++) {
@@ -114,7 +127,7 @@ public class GcmIntentService extends IntentService {
 			}
 			
 			mBuilder.setStyle(style);
-			mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size() + 1));
+			mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size()));
 		}
 		
 		mBuilder.setContentText(Html.fromHtml(msg));
@@ -123,9 +136,25 @@ public class GcmIntentService extends IntentService {
 		mBuilder.setDeleteIntent(dismissIntent);
 		mBuilder.setTicker(Html.fromHtml(msg));
 
+        if(!prefs.getBoolean("prefNotifySilent", false)) {
+            Date now = new Date();
+            if(now.getTime() - lastNotification.getTime() > Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000) {
+                if(!prefs.getBoolean("prefNotifyWhenActive", false) && extras.getString("active", "false").equals("true")) {
+                    Log.i(TAG, "Skipping vibration -- user already active");
+                }
+                else {
+                    // Make it vibrate!
+                    mBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
+                }
+            }
+            else {
+                Log.i(TAG, "Skipping vibration -- cooldown in effect");
+            }
+        }
+
 		Notification notification = mBuilder.build();
-		notification.defaults |= Notification.DEFAULT_VIBRATE;
 
 		mNotificationManager.notify(NotificationHelper.getFlowId(flow), notification);
+        Log.i(TAG, "Displaying message: " + extras.toString());
 	}
 }

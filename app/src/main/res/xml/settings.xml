@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/pref_token_category" >
+        <Preference
+            android:title="@string/pref_get_token"
+            android:summary="@string/pref_get_token_summary"
+            android:key="flowdockLink"/>
+
+        <EditTextPreference
+            android:title="@string/pref_token"
+            android:summary="@string/pref_token_summary"
+            android:hint="@string/pref_token_hint"
+            android:maxLength="32"
+            android:digits="0123456789ABCDEFabcdef"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:typeface="monospace"
+            android:gravity="center"
+            android:key="flowdockToken"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_notification_category" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="prefNotifyOwnMessages"
+            android:summary="@string/pref_notify_own_messages_summary"
+            android:title="@string/pref_notify_own_messages" >
+        </CheckBoxPreference>
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="prefNotifySilent"
+            android:summary="@string/pref_notify_silent_summary"
+            android:disableDependentsState="true"
+            android:title="@string/pref_notify_silent" >
+        </CheckBoxPreference>
+
+        <ListPreference
+            android:key="prefNotifyVibrationFrequency"
+            android:entries="@array/notifyDelay"
+            android:dependency="prefNotifySilent"
+
+            android:defaultValue="60"
+            android:entryValues="@array/notifyDelayValues"
+            android:summary="@string/pref_notify_vibration_frequency_summary"
+            android:title="@string/pref_notify_vibration_frequency" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="prefNotifyWhenActive"
+            android:summary="@string/pref_notify_when_active_summary"
+            android:title="@string/pref_notify_when_active" >
+        </CheckBoxPreference>
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,9 +1,11 @@
 package fr.neamar.notiflow;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 public class NotificationHelper {
+    protected static final HashMap<String, Date> notificationsDate = new HashMap<String, Date>();
 	protected static final HashMap<String, Integer> notificationsId = new HashMap<String, Integer>();
 	protected static final HashMap<String, ArrayList<String>> notifications = new HashMap<String, ArrayList<String>>();
 	
@@ -16,6 +18,8 @@ public class NotificationHelper {
 		if(!notifications.containsKey(flow)) {
 			notifications.put(flow, new ArrayList<String>());
 		}
+
+        notificationsDate.put(flow, new Date());
 		
 		ArrayList<String> flowNotifications = notifications.get(flow);
 		
@@ -35,9 +39,18 @@ public class NotificationHelper {
 			return new ArrayList<String>();
 		}
 	}
+
+    public static Date getLastNotificationDate(String flow) {
+        if(notificationsDate.containsKey(flow)) {
+            return notificationsDate.get(flow);
+        }
+        else {
+            return new Date(0);
+        }
+    }
 	
 	/**
-	 * Remove all stored notficiations from this flow.
+	 * Remove all stored notifications from this flow.
 	 * @param flow
 	 */
 	public static void cleanNotifications(String flow) {

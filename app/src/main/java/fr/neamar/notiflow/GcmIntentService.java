@@ -77,6 +77,9 @@ public class GcmIntentService extends IntentService {
                     // Wrap content in <em> tag
                     sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: <em>" + extras.getString("content") + "</em>", extras);
                 }
+                else if(extras.getString("content").startsWith("    ")) {
+                    sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: <tt>" + extras.getString("content") + "</tt>", extras);
+                }
                 else {
                     sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: " + extras.getString("content"), extras);
                 }

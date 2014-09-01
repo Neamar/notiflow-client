@@ -108,6 +108,10 @@ public class GcmIntentService extends IntentService {
 		Intent intent = new Intent(this, DismissNotification.class);
 		intent.setAction("notification_clicked");
 		intent.putExtra("flow", flow);
+        if(extras.containsKey("flow_url")) {
+            intent.putExtra("flow_url", extras.getString("flow_url"));
+        }
+
 		PendingIntent clickedIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		intent = new Intent(this, DismissNotification.class);

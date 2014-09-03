@@ -24,7 +24,7 @@ public class DismissNotification extends BroadcastReceiver {
 
             if(intent.hasExtra("flow_url")) {
                 flowdockIntent = new Intent();
-                flowdockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                flowdockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 flowdockIntent.setAction(Intent.ACTION_VIEW);
                 flowdockIntent.setData(Uri.parse(intent.getStringExtra("flow_url")));
             }

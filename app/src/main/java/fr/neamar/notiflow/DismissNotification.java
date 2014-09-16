@@ -22,7 +22,7 @@ public class DismissNotification extends BroadcastReceiver {
 		if(!intent.getAction().equals("notification_cancelled")) {
             Intent flowdockIntent;
 
-            if(intent.hasExtra("flow_url")) {
+            if(intent.hasExtra("flow_url") && !intent.getStringExtra("flow_url").equals("")) {
                 flowdockIntent = new Intent();
                 flowdockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 flowdockIntent.setAction(Intent.ACTION_VIEW);

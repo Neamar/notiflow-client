@@ -127,22 +127,23 @@ public class GcmIntentService extends IntentService {
         Date lastNotification = NotificationHelper.getLastNotificationDate(flow);
 		// Overwrite previous messages
 		NotificationHelper.addNotification(flow, msg);
-		
+
 		// We have a pending notification. We'll need to update it.
 		if(NotificationHelper.getNotifications(flow).size() > 1) {
 			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
 
 			// Read messages
 			ArrayList<String> prevMessages = NotificationHelper.getNotifications(flow);
-			
+
 			for(int i = 0; i < Math.min(prevMessages.size(), 5); i++) {
 				style.addLine(Html.fromHtml(prevMessages.get(i)));
 			}
-			
+
 			mBuilder.setStyle(style);
-			mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size()));
+			mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size()) + " messages");
+			mBuilder.setNumber(NotificationHelper.getNotifications(flow).size());
 		}
-		
+
 		mBuilder.setContentText(Html.fromHtml(msg));
 		mBuilder.setAutoCancel(true);
 		mBuilder.setContentIntent(clickedIntent);

@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.android.gms.common.GooglePlayServicesUtil.getErrorDialog;
 import static com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable;
@@ -43,6 +42,7 @@ import static com.google.android.gms.common.GooglePlayServicesUtil.isUserRecover
 
 public class SettingActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener{
 
+    public static final String PROPERTY_FLOWDOCK = "flowdockToken";
     public static final String PROPERTY_GCM_TOKEN = "gcm_token";
     private static final String PROPERTY_APP_VERSION = "appVersion";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -58,7 +58,6 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
     static final String TAG = "Notiflow";
 
     GoogleCloudMessaging gcm;
-    AtomicInteger msgId = new AtomicInteger();
     Context context;
 
     String regid;
@@ -75,12 +74,12 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 
         // UI
         addPreferencesFromResource(R.xml.settings);
-        EditTextPreference token = (EditTextPreference) findPreference("flowdockToken");
+        EditTextPreference token = (EditTextPreference) findPreference(PROPERTY_FLOWDOCK);
         final Spanned tokenDescription = Html.fromHtml(getString(R.string.pref_token_description));
         token.setDialogMessage(tokenDescription);
 
         // UX
-        if(prefs.getString("flowdockToken", "").equals("")) {
+        if(prefs.getString(PROPERTY_FLOWDOCK, "").equals("")) {
             Toast.makeText(this, getString(R.string.pref_token_toast), Toast.LENGTH_SHORT).show();
         }
         else {
@@ -108,6 +107,9 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
             if (regid.isEmpty()) {
                 registerInBackground();
             }
+            else {
+                withGcmToken(regid);
+            }
         } else {
             Toast.makeText(this, getString(R.string.activity_main_no_gps), Toast.LENGTH_LONG).show();
             finish();
@@ -123,75 +125,81 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if(key.equalsIgnoreCase("flowdockToken")) {
+        if(key.equalsIgnoreCase(PROPERTY_FLOWDOCK)) {
             final String flowdockToken = sharedPreferences.getString(key, "");
             final String gcmToken = getGcmToken(this);
 
-            new AsyncTask<Void, Void, String>() {
-                private Boolean success = false;
-
-                @Override
-                protected String doInBackground(Void... params) {
-                    // Check flowdock token is valid
-                    String pattern = "^[a-fA-F0-9]{32}$";
-                    if (!flowdockToken.matches(pattern)) {
-                        return "Token must be a 32 character hexadecimal string";
-                    }
-
-                    // Check we have a GCM id
-                    if (gcmToken.isEmpty()) {
-                        return "GCM token still generating. Please wait a few seconds, check your connection and retry.";
-                    }
-
-                    Log.i(TAG, "Registering flowdockToken: " + flowdockToken);
-                    Log.i(TAG, "Registering GCM token: " + gcmToken);
-
-                    // Create a new HttpClient and Post Header
-                    HttpClient httpclient = new DefaultHttpClient();
-                    HttpPost httppost = new HttpPost("http://notiflow.herokuapp.com/init");
-
-                    try {
-                        // Add your data
-                        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-                        nameValuePairs.add(new BasicNameValuePair("flowdock_token", flowdockToken));
-                        nameValuePairs.add(new BasicNameValuePair("gcm_token", gcmToken));
-                        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-                        // Execute HTTP Post Request
-                        HttpResponse response = httpclient.execute(httppost);
-
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-                        StringBuilder builder = new StringBuilder();
-                        for (String line; (line = reader.readLine()) != null;) {
-                            builder.append(line).append("\n");
-                        }
-
-                        if(response.getStatusLine().getStatusCode() == 200) {
-                            success = true;
-                            return "Notification are on their ways... Followed flows: " + builder.toString();
-                        }
-                        else {
-                            return "Unable to match token. Error: " + builder.toString();
-                        }
-
-
-                    } catch (ClientProtocolException e) {
-                        return e.toString();
-                    } catch (IOException e) {
-                        return e.toString();
-                    }
-                }
-
-                @Override
-                protected void onPostExecute(String msg) {
-                    Toast.makeText(SettingActivity.this, msg, Toast.LENGTH_LONG).show();
-
-                    if(success) {
-                        Log.i(TAG, "Registered!");
-                    }
-                }
-            }.execute(null, null, null);
+            registerToken(flowdockToken, gcmToken, false);
         }
+    }
+
+    private void registerToken(final String flowdockToken, final String gcmToken, final Boolean silent) {
+        new AsyncTask<Void, Void, String>() {
+            private Boolean success = false;
+
+            @Override
+            protected String doInBackground(Void... params) {
+                // Check flowdock token is valid
+                String pattern = "^[a-fA-F0-9]{32}$";
+                if (!flowdockToken.matches(pattern)) {
+                    return "Token must be a 32 character hexadecimal string";
+                }
+
+                // Check we have a GCM id
+                if (gcmToken.isEmpty()) {
+                    return "GCM token still generating. Please wait a few seconds, check your connection and retry.";
+                }
+
+                Log.i(TAG, "Registering flowdockToken: " + flowdockToken);
+                Log.i(TAG, "Registering GCM token: " + gcmToken);
+
+                // Create a new HttpClient and Post Header
+                HttpClient httpclient = new DefaultHttpClient();
+                HttpPost httppost = new HttpPost("http://notiflow.herokuapp.com/init");
+
+                try {
+                    // Add your data
+                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+                    nameValuePairs.add(new BasicNameValuePair("flowdock_token", flowdockToken));
+                    nameValuePairs.add(new BasicNameValuePair("gcm_token", gcmToken));
+                    httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                    // Execute HTTP Post Request
+                    HttpResponse response = httpclient.execute(httppost);
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+                    StringBuilder builder = new StringBuilder();
+                    for (String line; (line = reader.readLine()) != null;) {
+                        builder.append(line).append("\n");
+                    }
+
+                    if(response.getStatusLine().getStatusCode() == 200) {
+                        success = true;
+                        return "Notification are on their ways... Followed flows: " + builder.toString();
+                    }
+                    else {
+                        return "Unable to match token. Error: " + builder.toString();
+                    }
+
+
+                } catch (ClientProtocolException e) {
+                    return e.toString();
+                } catch (IOException e) {
+                    return e.toString();
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String msg) {
+                if(!silent) {
+                    Toast.makeText(SettingActivity.this, msg, Toast.LENGTH_LONG).show();
+                }
+
+                if(success) {
+                    Log.i(TAG, "Registered!");
+                }
+            }
+        }.execute(null, null, null);
     }
 
     /**
@@ -231,6 +239,16 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
         editor.apply();
     }
 
+    /**
+     * Function called when we have the GCM token (either generated or already there)
+     */
+    private void withGcmToken(String gcmToken) {
+        if(!prefs.getString(PROPERTY_FLOWDOCK, "").equals("")) {
+            // Re register just in case our token was lost in an update
+            Log.i(TAG, "Resending token and gcm to server");
+            registerToken(prefs.getString(PROPERTY_FLOWDOCK, ""), gcmToken, true);
+        }
+    }
 
     /**
      * Gets the current registration ID for application on GCM service, if there
@@ -287,6 +305,8 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
                     // Require the user to click a button again, or perform
                     // exponential back-off.
                 }
+
+                withGcmToken(regid);
                 return msg;
             }
         }.execute(null, null, null);

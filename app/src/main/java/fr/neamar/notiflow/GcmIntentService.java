@@ -73,16 +73,16 @@ public class GcmIntentService extends IntentService {
 				// If it's a regular GCM message, do some work.
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
 				// Post notification of received message.
-                if(extras.containsKey("special")) {
-                    // Wrap content in <em> tag
-                    sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: <em>" + extras.getString("content") + "</em>", extras);
-                }
-                else if(extras.getString("content").startsWith("    ")) {
-                    sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: <tt>" + extras.getString("content") + "</tt>", extras);
-                }
-                else {
-                    sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: " + extras.getString("content"), extras);
-                }
+				if(extras.containsKey("special")) {
+						// Wrap content in <em> tag
+						sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: <em>" + extras.getString("content") + "</em>", extras);
+				}
+				else if(extras.getString("content").startsWith("    ")) {
+						sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: <tt>" + extras.getString("content") + "</tt>", extras);
+				}
+				else {
+						sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: " + extras.getString("content"), extras);
+				}
 			}
 		}
 		// Release the wake lock provided by the WakefulBroadcastReceiver.
@@ -93,24 +93,24 @@ public class GcmIntentService extends IntentService {
 	// This is just one simple example of what you might choose to do with
 	// a GCM message.
 	private void sendNotification(String flow, String msg, Bundle extras) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        if(!prefs.getBoolean("prefNotifyOwnMessages", false) && extras.getString("own", "false").equals("true")) {
-            Log.i(TAG, "Skipping message (user sent): " + extras.toString());
-            mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.cancel(NotificationHelper.getFlowId(extras.getString("flow")));
-            NotificationHelper.cleanNotifications(extras.getString("flow"));
-            return;
-        }
+		if(!prefs.getBoolean("prefNotifyOwnMessages", false) && extras.getString("own", "false").equals("true")) {
+			Log.i(TAG, "Skipping message (user sent): " + extras.toString());
+			mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+			mNotificationManager.cancel(NotificationHelper.getFlowId(extras.getString("flow")));
+			NotificationHelper.cleanNotifications(extras.getString("flow"));
+			return;
+		}
 
 		mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		Intent intent = new Intent(this, DismissNotification.class);
 		intent.setAction("notification_clicked");
 		intent.putExtra("flow", flow);
-        if(extras.containsKey("flow_url")) {
-            intent.putExtra("flow_url", extras.getString("flow_url"));
-        }
+		if(extras.containsKey("flow_url")) {
+			intent.putExtra("flow_url", extras.getString("flow_url"));
+		}
 
 		PendingIntent clickedIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
@@ -123,8 +123,8 @@ public class GcmIntentService extends IntentService {
 		mBuilder.setSmallIcon(R.drawable.notification);
 		mBuilder.setContentTitle(flow);
 
-        // Retrieve last modification date for this flow
-        Date lastNotification = NotificationHelper.getLastNotificationDate(flow);
+		// Retrieve last modification date for this flow
+		Date lastNotification = NotificationHelper.getLastNotificationDate(flow);
 		// Overwrite previous messages
 		NotificationHelper.addNotification(flow, msg);
 
@@ -150,25 +150,25 @@ public class GcmIntentService extends IntentService {
 		mBuilder.setDeleteIntent(dismissIntent);
 		mBuilder.setTicker(Html.fromHtml(msg));
 
-        if(!prefs.getBoolean("prefNotifySilent", false)) {
-            Date now = new Date();
-            if(now.getTime() - lastNotification.getTime() > Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000) {
-                if(!prefs.getBoolean("prefNotifyWhenActive", false) && extras.getString("active", "false").equals("true")) {
-                    Log.i(TAG, "Skipping vibration -- user already active");
-                }
-                else {
-                    // Make it vibrate!
-                    mBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
-                }
-            }
-            else {
-                Log.i(TAG, "Skipping vibration -- cooldown in effect");
-            }
-        }
+		if(!prefs.getBoolean("prefNotifySilent", false)) {
+			Date now = new Date();
+			if(now.getTime() - lastNotification.getTime() > Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000) {
+					if(!prefs.getBoolean("prefNotifyWhenActive", false) && extras.getString("active", "false").equals("true")) {
+							Log.i(TAG, "Skipping vibration -- user already active");
+					}
+					else {
+							// Make it vibrate!
+							mBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
+					}
+			}
+			else {
+					Log.i(TAG, "Skipping vibration -- cooldown in effect");
+			}
+		}
 
 		Notification notification = mBuilder.build();
 
 		mNotificationManager.notify(NotificationHelper.getFlowId(flow), notification);
-        Log.i(TAG, "Displaying message: " + extras.toString());
+				Log.i(TAG, "Displaying message: " + extras.toString());
 	}
 }

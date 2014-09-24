@@ -139,6 +139,9 @@ public class GcmIntentService extends IntentService {
 			mBuilder.setContentInfo(Integer.toString(NotificationHelper.getNotifications(flow).size()) + " messages");
 			mBuilder.setNumber(NotificationHelper.getNotifications(flow).size());
 		}
+		else {
+			mBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(Html.fromHtml(msg)));
+		}
 
 		mBuilder.setContentText(Html.fromHtml(msg));
 		mBuilder.setAutoCancel(true);

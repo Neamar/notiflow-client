@@ -169,7 +169,17 @@ public class GcmIntentService extends IntentService {
         ArrayList<String> prevMessages = NotificationHelper.getNotifications(flow);
         Integer pendingCount = prevMessages.size();
 
-        if(pendingCount > 1) {
+        if(pendingCount == 1) {
+			// Only one notification : display using BigTextStyle for multiline.
+			NotificationCompat.BigTextStyle style = new NotificationCompat.BigTextStyle()
+					.bigText(Html.fromHtml(msg));
+
+			mBuilder.setStyle(style);
+
+			notification = mBuilder.build();
+		}
+		else {
+			// More than one notification: use inbox style, displaying up to 5 messages
             NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
 
             for (int i = 0; i < Math.min(pendingCount, 5); i++) {
@@ -184,6 +194,7 @@ public class GcmIntentService extends IntentService {
             NotificationCompat.BigTextStyle pageStyle = new NotificationCompat.BigTextStyle();
             StringBuilder pageText = new StringBuilder();
 
+			// And then add a second page for Wearables, displaying the whole pending conversation
             for (int i = pendingCount - 1; i >= 0; i--) {
                 if(i < pendingCount - 1) pageText.append("<br /><br />");
                 pageText.append(prevMessages.get(i));
@@ -200,13 +211,6 @@ public class GcmIntentService extends IntentService {
                     .extend(mBuilder)
                     .build();
 
-        } else {
-            NotificationCompat.BigTextStyle style = new NotificationCompat.BigTextStyle()
-                    .bigText(Html.fromHtml(msg));
-
-            mBuilder.setStyle(style);
-
-            notification = mBuilder.build();
         }
 
 		mNotificationManager.notify(NotificationHelper.getFlowId(flow), notification);

@@ -61,9 +61,8 @@ public class GcmIntentService extends IntentService {
 		if (!extras.isEmpty()) { // has effect of unparcelling Bundle
 			/*
 			 * Filter messages based on message type. Since it is likely that
-			 * GCM will be extended in the future with new message types, just
-			 * ignore any message types you're not interested in, or that you
-			 * don't recognize.
+			 * GCM will be extended in the future with new message types, we
+			 * ignore any message types we're not interested in.
 			 */
 			if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
 				sendNotification("Notiflow", "Send error: " + extras.toString(), extras);
@@ -87,7 +86,6 @@ public class GcmIntentService extends IntentService {
 	}
 
 	private PendingIntent createClickedIntent(String flow, Bundle extras) {
-
 		Intent intent = new Intent(this, DismissNotification.class);
 		intent.setAction("notification_clicked");
 		intent.putExtra("flow", flow);
@@ -108,8 +106,6 @@ public class GcmIntentService extends IntentService {
 	}
 
 	// Put the message into a notification and post it.
-	// This is just one simple example of what you might choose to do with
-	// a GCM message.
 	private void sendNotification(String flow, String msg, Bundle extras) {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -188,7 +184,7 @@ public class GcmIntentService extends IntentService {
 
 			mBuilder
 					.setStyle(style)
-					.setContentInfo(Integer.toString(pendingCount) + " messages")
+					.setContentInfo(Integer.toString(pendingCount))
 					.setNumber(pendingCount);
 
 			NotificationCompat.BigTextStyle pageStyle = new NotificationCompat.BigTextStyle();

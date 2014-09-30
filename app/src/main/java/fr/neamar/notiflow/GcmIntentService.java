@@ -23,6 +23,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -30,6 +31,9 @@ import android.text.Html;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,6 +52,22 @@ public class GcmIntentService extends IntentService {
 
 	public GcmIntentService() {
 		super("GcmIntentService");
+	}
+
+	@Override
+	public void onCreate() {
+		super.onCreate();
+
+		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
+				.cacheInMemory(true)	// defaults to LruMemoryCache
+				.cacheOnDisk(true)		// defaults to UnlimitedDiscCache
+				.build();
+
+		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
+				.defaultDisplayImageOptions(defaultOptions)
+				.build();
+
+		ImageLoader.getInstance().init(config);
 	}
 
 	@Override
@@ -126,6 +146,7 @@ public class GcmIntentService extends IntentService {
 		NotificationHelper.addNotification(flow, msg);
 
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
+		NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender();
 
 		Boolean silentMode = prefs.getBoolean("prefNotifySilent", false);
 
@@ -149,32 +170,16 @@ public class GcmIntentService extends IntentService {
 			}
 		}
 
-
-		mBuilder
-				.setSmallIcon(R.drawable.notification)
-				.setContentTitle(flow)
-				.setContentText(Html.fromHtml(msg))
-				.setAutoCancel(true)
-				.setContentIntent(createClickedIntent(flow, extras))
-				.setDeleteIntent(createDismissedIntent(flow))
-				.setPriority(NotificationCompat.PRIORITY_HIGH)
-				.setTicker(Html.fromHtml(msg));
-
-		Notification notification;
-
 		ArrayList<String> prevMessages = NotificationHelper.getNotifications(flow);
 		Integer pendingCount = prevMessages.size();
 
-		if(pendingCount == 1) {
+		if (pendingCount == 1) {
 			// Only one notification : display using BigTextStyle for multiline.
 			NotificationCompat.BigTextStyle style = new NotificationCompat.BigTextStyle()
 					.bigText(Html.fromHtml(msg));
 
 			mBuilder.setStyle(style);
-
-			notification = mBuilder.build();
-		}
-		else {
+		} else {
 			// More than one notification: use inbox style, displaying up to 5 messages
 			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
 
@@ -192,7 +197,7 @@ public class GcmIntentService extends IntentService {
 
 			// And then add a second page for Wearables, displaying the whole pending conversation
 			for (int i = pendingCount - 1; i >= 0; i--) {
-				if(i < pendingCount - 1){
+				if (i < pendingCount - 1) {
 					pageText.append("<br /><br />");
 				}
 				pageText.append(prevMessages.get(i));
@@ -202,14 +207,53 @@ public class GcmIntentService extends IntentService {
 
 			Notification secondPage = new NotificationCompat.Builder(this)
 					.setStyle(pageStyle)
+					.extend(new NotificationCompat.WearableExtender()
+							.setStartScrollBottom(true))
 					.build();
 
-			notification = new NotificationCompat.WearableExtender()
-					.addPage(secondPage)
-					.extend(mBuilder)
-					.build();
+			wearableExtender.addPage(secondPage);
 
 		}
+
+		// Set large icon, which gets used for wearable background as well
+		String avatar = extras.getString("avatar");
+		if (avatar != null) {
+
+			String sizeExpr = "(/\\d+/?)$";
+			Boolean isCloudFront = avatar.contains("cloudfront");
+			Boolean hasSize = avatar.matches(".*" + sizeExpr);
+
+			if (isCloudFront) {
+				if (!hasSize) {
+					avatar += "/400";
+				} else {
+					avatar.replaceFirst(sizeExpr, "/400");
+				}
+			}
+
+			ImageLoader imageLoader = ImageLoader.getInstance();
+			Bitmap image = imageLoader.loadImageSync(avatar);
+
+			// scale for notification tray
+			int height = (int) getResources().getDimension(android.R.dimen.notification_large_icon_height);
+			int width = (int) getResources().getDimension(android.R.dimen.notification_large_icon_width);
+			Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
+
+			mBuilder.setLargeIcon(scaledImage);
+			wearableExtender.setBackground(image);
+		}
+
+		Notification notification = mBuilder
+				.setSmallIcon(R.drawable.notification)
+				.setContentTitle(flow)
+				.setContentText(Html.fromHtml(msg))
+				.setAutoCancel(true)
+				.setContentIntent(createClickedIntent(flow, extras))
+				.setDeleteIntent(createDismissedIntent(flow))
+				.setPriority(NotificationCompat.PRIORITY_HIGH)
+				.setTicker(Html.fromHtml(msg))
+				.extend(wearableExtender)
+				.build();
 
 		mNotificationManager.notify(NotificationHelper.getFlowId(flow), notification);
 		Log.i(TAG, "Displaying message: " + extras.toString());

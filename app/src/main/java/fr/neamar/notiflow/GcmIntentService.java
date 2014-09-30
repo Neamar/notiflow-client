@@ -31,11 +31,9 @@ import android.text.Html;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,13 +59,12 @@ public class GcmIntentService extends IntentService {
 		super.onCreate();
 
 		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
-				.cacheInMemory(true)
-				.imageScaleType(ImageScaleType.EXACTLY)
+				.cacheInMemory(true)	// defaults to LruMemoryCache
+				.cacheOnDisk(true)		// defaults to UnlimitedDiscCache
 				.build();
 
 		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
 				.defaultDisplayImageOptions(defaultOptions)
-				.memoryCache(new WeakMemoryCache())
 				.build();
 
 		ImageLoader.getInstance().init(config);
@@ -237,7 +234,13 @@ public class GcmIntentService extends IntentService {
 			ImageLoader imageLoader = ImageLoader.getInstance();
 			Bitmap image = imageLoader.loadImageSync(avatar);
 
-			mBuilder.setLargeIcon(image);
+			// scale for notification tray
+			int height = (int) getResources().getDimension(android.R.dimen.notification_large_icon_height);
+			int width = (int) getResources().getDimension(android.R.dimen.notification_large_icon_width);
+			Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
+
+			mBuilder.setLargeIcon(scaledImage);
+			wearableExtender.setBackground(image);
 		}
 
 		Notification notification = mBuilder

@@ -8,8 +8,12 @@
     <string name="activity_main_no_gps">No valid Google Play Services APK found.</string>
     <string name="activity_main_submit">Start Notiflow</string>
 
+    <string name="pref_notify_type">When to notify</string>
+    <string name="pref_notify_type_summary">%s</string>
+
     <string name="pref_notify_own_messages">Notify on my messages</string>
     <string name="pref_notify_own_messages_summary">Display a notification even for my own messages</string>
+
     <string name="pref_notify_vibration_frequency">Vibration frequency</string>
     <string name="pref_notify_vibration_frequency_summary">Minimum delay between vibrations</string>
 

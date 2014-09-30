@@ -135,13 +135,24 @@ public class GcmIntentService extends IntentService {
 		Boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
 		Boolean isOwnMessage = extras.getString("own", "false").equals("true");
 
-		// notify on own messages
-		if (isOwnMessage && !notifyOwnMessages) {
-			Log.i(TAG, "Skipping message (user sent): " + extras.toString());
+		String notifyType = prefs.getString("prefNotifyType", "all"); // all | mentions | private
+		Boolean isMentioned = extras.getString("mentioned", "false").equals("true");
+		Boolean isPrivate = extras.getString("private", "false").equals("true");
 
+		Log.d(TAG, "type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
+
+		if(isOwnMessage && !notifyOwnMessages) {
+			Log.i(TAG, "Canceling notification (user sent): " + extras.toString());
 			mNotificationManager.cancel(extras.getString("flow"), 0);
 			NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
+			return;
 
+		} else if(notifyType.equals("mentions") && !isMentioned && !isPrivate) {
+			Log.i(TAG, "Skipping message (not mentioned): " + extras.toString());
+			return;
+
+		} else if(notifyType.equals("private") && !isPrivate) {
+			Log.i(TAG, "Skipping message (not private): " + extras.toString());
 			return;
 		}
 
@@ -245,6 +256,11 @@ public class GcmIntentService extends IntentService {
 			wearableExtender.setBackground(image);
 		}
 
+		// Increase priority only for mentions and 1-1 conversations
+		if(isMentioned || isPrivate) {
+			mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
+		}
+
 		Notification notification = mBuilder
 				.setSmallIcon(R.drawable.notification)
 				.setContentTitle(flow)
@@ -252,7 +268,6 @@ public class GcmIntentService extends IntentService {
 				.setAutoCancel(true)
 				.setContentIntent(createClickedIntent(flow, extras))
 				.setDeleteIntent(createDismissedIntent(flow))
-				.setPriority(NotificationCompat.PRIORITY_HIGH)
 				.setTicker(Html.fromHtml(msg))
 				.extend(wearableExtender)
 				.build();

@@ -20,6 +20,16 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_notification_category" >
+
+        <ListPreference
+            android:key="prefNotifyType"
+            android:entries="@array/notifyType"
+
+            android:defaultValue="all"
+            android:entryValues="@array/notifyTypeValues"
+            android:summary="@string/pref_notify_type_summary"
+            android:title="@string/pref_notify_type" />
+
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="prefNotifyOwnMessages"

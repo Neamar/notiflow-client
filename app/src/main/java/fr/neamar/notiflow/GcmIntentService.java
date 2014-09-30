@@ -143,6 +143,7 @@ public class GcmIntentService extends IntentService {
 			return;
 		}
 
+		Date lastNotification = NotificationHelper.getLastNotificationDate(flow);
 		NotificationHelper.addNotification(flow, msg);
 
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
@@ -152,14 +153,13 @@ public class GcmIntentService extends IntentService {
 
 		if (!silentMode) {
 			Date now = new Date();
-			Date lastNotification = NotificationHelper.getLastNotificationDate(flow);
 			Long timeSinceLastNotification = now.getTime() - lastNotification.getTime();
 
 			Integer frequency = Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000;
 			Boolean notifyWhenActive = prefs.getBoolean("prefNotifyWhenActive", false);
 			Boolean isActive = extras.getString("active", "false").equals("true");
 
-			if (timeSinceLastNotification <= frequency) {
+			if (timeSinceLastNotification < frequency) {
 				Log.i(TAG, "Skipping vibration -- cooldown in effect");
 
 			} else if (isActive && !notifyWhenActive) {

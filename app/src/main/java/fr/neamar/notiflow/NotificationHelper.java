@@ -55,6 +55,7 @@ public class NotificationHelper {
 	 * @param flow
 	 */
 	public static void cleanNotifications(String flow) {
+		notificationsDate.remove(flow);
 		notifications.put(flow, new ArrayList<String>());
 	}
 

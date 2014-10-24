@@ -38,6 +38,8 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import java.util.ArrayList;
 import java.util.Date;
 
+import fr.neamar.notiflow.db.NotificationHelper;
+
 /**
  * This {@code IntentService} does the actual handling of the GCM message.
  * {@code GcmBroadcastReceiver} (a {@code WakefulBroadcastReceiver}) holds a
@@ -138,13 +140,13 @@ public class GcmIntentService extends IntentService {
 			Log.i(TAG, "Skipping message (user sent): " + extras.toString());
 
 			mNotificationManager.cancel(extras.getString("flow"), 0);
-			NotificationHelper.cleanNotifications(extras.getString("flow"));
+			NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
 
 			return;
 		}
 
-		Date lastNotification = NotificationHelper.getLastNotificationDate(flow);
-		NotificationHelper.addNotification(flow, msg);
+		Date lastNotification = NotificationHelper.getLastNotificationDate(getApplicationContext(), flow);
+		NotificationHelper.addNotification(getApplicationContext(), flow, msg);
 
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
 		NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender();
@@ -170,7 +172,7 @@ public class GcmIntentService extends IntentService {
 			}
 		}
 
-		ArrayList<String> prevMessages = NotificationHelper.getNotifications(flow);
+		ArrayList<String> prevMessages = NotificationHelper.getNotifications(getApplicationContext(), flow);
 		Integer pendingCount = prevMessages.size();
 
 		if (pendingCount == 1) {

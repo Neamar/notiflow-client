@@ -137,7 +137,7 @@ public class GcmIntentService extends IntentService {
 		if (isOwnMessage && !notifyOwnMessages) {
 			Log.i(TAG, "Skipping message (user sent): " + extras.toString());
 
-			mNotificationManager.cancel(NotificationHelper.getFlowId(extras.getString("flow")));
+			mNotificationManager.cancel(extras.getString("flow"), 0);
 			NotificationHelper.cleanNotifications(extras.getString("flow"));
 
 			return;
@@ -255,7 +255,7 @@ public class GcmIntentService extends IntentService {
 				.extend(wearableExtender)
 				.build();
 
-		mNotificationManager.notify(NotificationHelper.getFlowId(flow), notification);
+		mNotificationManager.notify(flow, 0, notification);
 		Log.i(TAG, "Displaying message: " + extras.toString());
 	}
 }

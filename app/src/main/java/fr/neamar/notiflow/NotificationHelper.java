@@ -6,7 +6,6 @@ import java.util.HashMap;
 
 public class NotificationHelper {
 	protected static final HashMap<String, Date> notificationsDate = new HashMap<String, Date>();
-	protected static final HashMap<String, Integer> notificationsId = new HashMap<String, Integer>();
 	protected static final HashMap<String, ArrayList<String>> notifications = new HashMap<String, ArrayList<String>>();
 
 	/**
@@ -57,20 +56,5 @@ public class NotificationHelper {
 	public static void cleanNotifications(String flow) {
 		notificationsDate.remove(flow);
 		notifications.put(flow, new ArrayList<String>());
-	}
-
-
-	/**
-	 * Return a value to use for notifications from this flow
-	 *
-	 * @param flow
-	 * @return
-	 */
-	public static int getFlowId(String flow) {
-		if (!notificationsId.containsKey(flow)) {
-			notificationsId.put(flow, notificationsId.size());
-		}
-
-		return notificationsId.get(flow);
 	}
 }

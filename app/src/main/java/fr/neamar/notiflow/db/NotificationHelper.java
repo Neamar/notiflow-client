@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -60,7 +61,21 @@ public class NotificationHelper {
 	}
 
 	public static Date getLastNotificationDate(Context context, String flow) {
-		return new Date();
+		SQLiteDatabase db = getDatabase(context);
+		Long lastTimestamp = new Long(0);
+
+		Cursor cursor = db.query("notifications", new String[] { "date" }, "flow = ?", new String[] { flow }, null, null, "_id DESC", "1");
+
+		cursor.moveToFirst();
+
+		if(!cursor.isAfterLast()) {
+			lastTimestamp = cursor.getLong(0);
+		}
+
+		cursor.close();
+		db.close();
+
+		return new Date(lastTimestamp);
 	}
 
 	/**
@@ -69,6 +84,9 @@ public class NotificationHelper {
 	 * @param flow
 	 */
 	public static void cleanNotifications(Context context, String flow) {
+		SQLiteDatabase db = getDatabase(context);
 
+		db.delete("notifications", "flow = ?", new String[] { flow });
+		db.close();
 	}
 }

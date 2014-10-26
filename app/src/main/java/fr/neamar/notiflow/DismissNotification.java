@@ -7,20 +7,13 @@ import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 
+import fr.neamar.notiflow.db.NotificationHelper;
+
 public class DismissNotification extends BroadcastReceiver {
-	public static final String STORAGE_COLLECTION = "notifier";
-	public static final String PROPERTY_NOTIFICATION = "notification";
-	public static final String PROPERTY_MESSAGE = "message-";
-
-
-	public static String getPreviousMessageKey(int id) {
-		return PROPERTY_MESSAGE + Integer.toString(id);
-	}
-
 @Override
 	public void onReceive(Context context, Intent intent) {
 
-		NotificationHelper.cleanNotifications(intent.getStringExtra("flow"));
+		NotificationHelper.cleanNotifications(context, intent.getStringExtra("flow"));
 
 		Log.i("Notiflow", "Dismissed notification");
 

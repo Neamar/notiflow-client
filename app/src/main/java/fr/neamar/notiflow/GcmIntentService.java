@@ -93,13 +93,18 @@ public class GcmIntentService extends IntentService {
 				// If it's a regular GCM message, do some work.
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
 				// Post notification of received message.
-				if (extras.containsKey("special")) {
+				Boolean isSpecial = extras.containsKey("special");
+				String flow = extras.getString("flow", "");
+				String author = extras.getString("author", "???");
+				String content = extras.getString("content", "");
+
+				if (isSpecial) {
 					// Wrap content in <em> tag
-					sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: <em>" + extras.getString("content") + "</em>", extras);
-				} else if (extras.getString("content").startsWith("    ")) {
-					sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: <tt>" + extras.getString("content") + "</tt>", extras);
+					sendNotification(flow, "<b>" + author + "</b>: <em>" + content + "</em>", extras);
+				} else if (content.startsWith("    ")) {
+					sendNotification(flow, "<b>" + author + "</b>: <tt>" + content + "</tt>", extras);
 				} else {
-					sendNotification(extras.getString("flow"), "<b>" + extras.getString("author", "???") + "</b>: " + extras.getString("content"), extras);
+					sendNotification(flow, "<b>" + author + "</b>: " + content, extras);
 				}
 			}
 		}
@@ -135,16 +140,22 @@ public class GcmIntentService extends IntentService {
 		Boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
 		Boolean isOwnMessage = extras.getString("own", "false").equals("true");
 
-		String notifyType = prefs.getString("prefNotifyType", "all"); // all | mentions | private
+		String notifyType = prefs.getString("prefNotifyType", "all"); // all | highlights | mentions | private
 		Boolean isMentioned = extras.getString("mentioned", "false").equals("true");
+		Boolean isHighlighted = extras.getString("highlight", "false").equals("true");
 		Boolean isPrivate = extras.getString("private", "false").equals("true");
 
-		Log.d(TAG, "type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
+		Log.d(TAG, "type " + notifyType + ", highlighted: " + isHighlighted +
+				", mentioned: " + isHighlighted + ", private: " + isPrivate);
 
 		if(isOwnMessage && !notifyOwnMessages) {
 			Log.i(TAG, "Canceling notification (user sent): " + extras.toString());
 			mNotificationManager.cancel(extras.getString("flow"), 0);
 			NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
+			return;
+
+		} else if(notifyType.equals("highlights") && !isHighlighted && !isMentioned && !isPrivate) {
+			Log.i(TAG, "Skipping message (not highlighted): " + extras.toString());
 			return;
 
 		} else if(notifyType.equals("mentions") && !isMentioned && !isPrivate) {
@@ -229,8 +240,8 @@ public class GcmIntentService extends IntentService {
 		}
 
 		// Set large icon, which gets used for wearable background as well
-		String avatar = extras.getString("avatar");
-		if (avatar != null) {
+		String avatar = extras.getString("avatar", "");
+		if (!avatar.equals("")) {
 
 			String sizeExpr = "(/\\d+/?)$";
 			Boolean isCloudFront = avatar.contains("cloudfront");
@@ -257,7 +268,7 @@ public class GcmIntentService extends IntentService {
 		}
 
 		// Increase priority only for mentions and 1-1 conversations
-		if(isMentioned || isPrivate) {
+		if(isHighlighted || isMentioned || isPrivate) {
 			mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
 		}
 

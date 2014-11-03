@@ -23,13 +23,15 @@
     </string-array>
 
     <string-array name="notifyType">
-        <item name="all">All messages and mentions</item>
-        <item name="mentions">1-to-1 messages and mentions</item>
+        <item name="all">All messages</item>
+        <item name="highlights">Highlighted and 1-to-1</item>
+        <item name="mentions">\@mentions and 1-to-1</item>
         <item name="private">1-to-1 messages only</item>
     </string-array>
 
     <string-array name="notifyTypeValues">
         <item name="all">all</item>
+        <item name="highlights">highlights</item>
         <item name="mentions">mentions</item>
         <item name="private">private</item>
     </string-array>

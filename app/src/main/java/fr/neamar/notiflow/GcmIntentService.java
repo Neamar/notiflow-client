@@ -111,11 +111,14 @@ public class GcmIntentService extends IntentService {
 		Intent intent = new Intent(this, DismissNotification.class);
 		intent.setAction("notification_clicked");
 		intent.putExtra("flow", flow);
+
+		int requestCode = 0;
 		if (extras.containsKey("flow_url")) {
 			intent.putExtra("flow_url", extras.getString("flow_url"));
+			requestCode = extras.getString("flow_url").hashCode();
 		}
 
-		return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+		return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 	}
 
 	private PendingIntent createDismissedIntent(String flow) {
@@ -123,8 +126,9 @@ public class GcmIntentService extends IntentService {
 		Intent intent = new Intent(this, DismissNotification.class);
 		intent.setAction("notification_cancelled");
 		intent.putExtra("flow", flow);
+		int requestCode = flow.hashCode();
 
-		return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+		return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 	}
 
 	// Put the message into a notification and post it.

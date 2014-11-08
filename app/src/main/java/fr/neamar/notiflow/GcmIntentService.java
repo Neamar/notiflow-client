@@ -140,22 +140,16 @@ public class GcmIntentService extends IntentService {
 		Boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
 		Boolean isOwnMessage = extras.getString("own", "false").equals("true");
 
-		String notifyType = prefs.getString("prefNotifyType", "all"); // all | highlights | mentions | private
+		String notifyType = prefs.getString("prefNotifyType", "all"); // all | mentions | private
 		Boolean isMentioned = extras.getString("mentioned", "false").equals("true");
-		Boolean isHighlighted = extras.getString("highlight", "false").equals("true");
 		Boolean isPrivate = extras.getString("private", "false").equals("true");
 
-		Log.d(TAG, "type " + notifyType + ", highlighted: " + isHighlighted +
-				", mentioned: " + isHighlighted + ", private: " + isPrivate);
+		Log.d(TAG, "type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
 
 		if(isOwnMessage && !notifyOwnMessages) {
 			Log.i(TAG, "Canceling notification (user sent): " + extras.toString());
 			mNotificationManager.cancel(extras.getString("flow"), 0);
 			NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
-			return;
-
-		} else if(notifyType.equals("highlights") && !isHighlighted && !isMentioned && !isPrivate) {
-			Log.i(TAG, "Skipping message (not highlighted): " + extras.toString());
 			return;
 
 		} else if(notifyType.equals("mentions") && !isMentioned && !isPrivate) {
@@ -268,7 +262,7 @@ public class GcmIntentService extends IntentService {
 		}
 
 		// Increase priority only for mentions and 1-1 conversations
-		if(isHighlighted || isMentioned || isPrivate) {
+		if(isMentioned || isPrivate) {
 			mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
 		}
 

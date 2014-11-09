@@ -148,7 +148,7 @@ public class GcmIntentService extends IntentService {
 		Boolean isMentioned = extras.getString("mentioned", "false").equals("true");
 		Boolean isPrivate = extras.getString("private", "false").equals("true");
 
-		Log.d(TAG, "type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
+		Log.d(TAG, "New message, type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
 
 		if(isOwnMessage && !notifyOwnMessages) {
 			Log.i(TAG, "Canceling notification (user sent): " + extras.toString());

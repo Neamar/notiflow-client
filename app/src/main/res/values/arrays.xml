@@ -22,4 +22,16 @@
         <item name="9999999">9999999</item>
     </string-array>
 
+    <string-array name="notifyType">
+        <item name="all">All messages</item>
+        <item name="mentions">\@mentions and 1-to-1</item>
+        <item name="private">1-to-1 messages only</item>
+    </string-array>
+
+    <string-array name="notifyTypeValues">
+        <item name="all">all</item>
+        <item name="mentions">mentions</item>
+        <item name="private">private</item>
+    </string-array>
+
 </resources>

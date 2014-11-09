@@ -56,10 +56,7 @@ public class GcmIntentService extends IntentService {
 		super("GcmIntentService");
 	}
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-
+	private void initialiseImageLoader() {
 		ImageLoader imageLoader = ImageLoader.getInstance();
 		if(imageLoader.isInited()) {
 			return;
@@ -75,6 +72,13 @@ public class GcmIntentService extends IntentService {
 				.build();
 
 		imageLoader.init(config);
+	}
+
+	@Override
+	public void onCreate() {
+		super.onCreate();
+
+		initialiseImageLoader();
 	}
 
 	@Override

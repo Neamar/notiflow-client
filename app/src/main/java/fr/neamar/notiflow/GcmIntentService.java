@@ -56,9 +56,11 @@ public class GcmIntentService extends IntentService {
 		super("GcmIntentService");
 	}
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
+	private void initialiseImageLoader() {
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		if(imageLoader.isInited()) {
+			return;
+		}
 
 		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
 				.cacheInMemory(true)	// defaults to LruMemoryCache
@@ -69,7 +71,14 @@ public class GcmIntentService extends IntentService {
 				.defaultDisplayImageOptions(defaultOptions)
 				.build();
 
-		ImageLoader.getInstance().init(config);
+		imageLoader.init(config);
+	}
+
+	@Override
+	public void onCreate() {
+		super.onCreate();
+
+		initialiseImageLoader();
 	}
 
 	@Override

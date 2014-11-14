@@ -28,7 +28,7 @@ public class DismissNotification extends BroadcastReceiver {
 				Log.i("EXIT-APP", intent.getStringExtra("flow_url"));
 			} else {
 				flowdockIntent = context.getPackageManager().getLaunchIntentForPackage("com.flowdock.jorge");
-				Log.i("EXIT-APP", intent.getStringExtra("com.flowdock.jorge"));
+				Log.i("EXIT-APP", "com.flowdock.jorge");
 			}
 
 			if (flowdockIntent == null) {

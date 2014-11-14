@@ -281,12 +281,14 @@ public class GcmIntentService extends IntentService {
 
 		Notification notification = mBuilder
 				.setSmallIcon(R.drawable.notification)
+                .setColor(0x7BD3FB)
 				.setContentTitle(flow)
 				.setContentText(Html.fromHtml(msg))
 				.setAutoCancel(true)
 				.setContentIntent(createClickedIntent(flow, extras))
 				.setDeleteIntent(createDismissedIntent(flow))
 				.setTicker(Html.fromHtml(msg))
+                .setCategory(Notification.CATEGORY_SOCIAL)
 				.extend(wearableExtender)
 				.build();
 

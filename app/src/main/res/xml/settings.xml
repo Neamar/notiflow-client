@@ -63,4 +63,11 @@
         </CheckBoxPreference>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/pref_notification_stats_category" android:key="notiflowStats">
+        <Preference
+            android:title="@string/pref_stats_total"
+            android:summary="@string/pref_stats_total_summary"
+            android:enabled="false"
+            android:key="notiflowStatsTotal"/>
+    </PreferenceCategory>
 </PreferenceScreen>

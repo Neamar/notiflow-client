@@ -41,4 +41,8 @@
 
     <string name="pref_token_category">User token</string>
     <string name="pref_notification_category">Notifications Settings</string>
+    <string name="pref_stats_total">Notification count</string>
+    <string name="pref_stats_total_placeholder">%s notifications displayed</string>
+    <string name="pref_stats_total_summary">Number of notifications displayed since installation</string>
+    <string name="pref_notification_stats_category">Statistics</string>
 </resources>

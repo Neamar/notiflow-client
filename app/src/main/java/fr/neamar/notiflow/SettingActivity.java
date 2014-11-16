@@ -11,7 +11,9 @@ import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
@@ -34,6 +36,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.neamar.notiflow.db.NotificationHelper;
 
 import static com.google.android.gms.common.GooglePlayServicesUtil.getErrorDialog;
 import static com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable;
@@ -121,6 +125,19 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 		} else {
 			Toast.makeText(this, getString(R.string.activity_main_no_gps), Toast.LENGTH_LONG).show();
 			finish();
+		}
+
+		Long notificationCount = NotificationHelper.getTotalCreatedRows(this);
+		PreferenceScreen preferenceScreen = getPreferenceScreen();
+
+		PreferenceGroup preferenceGroup = (PreferenceGroup) findPreference("notiflowStats");
+		if(notificationCount < 2) {
+			preferenceScreen.removePreference(preferenceGroup);
+		}
+		else {
+			Preference totalStats = findPreference("notiflowStatsTotal");
+			String generatedText = getString(R.string.pref_stats_total_placeholder).replace("%s", String.valueOf(notificationCount));
+			totalStats.setTitle(generatedText);
 		}
 	}
 

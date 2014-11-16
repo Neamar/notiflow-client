@@ -88,4 +88,27 @@ public class NotificationHelper {
 		db.delete("notifications", "flow = ?", new String[] { flow });
 		db.close();
 	}
+
+
+	/**
+	 * Return the number of rows ever inserted into the notification table
+	 *
+	 */
+	public static long getTotalCreatedRows(Context context) {
+		SQLiteDatabase db = getDatabase(context);
+
+		String query = "SELECT seq FROM SQLITE_SEQUENCE WHERE name = ?";
+		Cursor cursor = db.rawQuery(query, new String[] { "notifications" });
+
+		cursor.moveToFirst();
+
+		long notificationCount = 0;
+		if(!cursor.isAfterLast()) {
+			notificationCount = cursor.getLong(cursor.getColumnIndex("seq"));
+		}
+		cursor.close();
+
+		return notificationCount;
+
+	}
 }

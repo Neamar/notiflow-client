@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -100,7 +99,6 @@ public class NotificationHelper {
 
 		String query = "SELECT seq FROM SQLITE_SEQUENCE WHERE name = ?";
 		Cursor cursor = db.rawQuery(query, new String[] { "notifications" });
-		Log.e("WTF", "count: " + cursor.getCount());
 
 		cursor.moveToFirst();
 

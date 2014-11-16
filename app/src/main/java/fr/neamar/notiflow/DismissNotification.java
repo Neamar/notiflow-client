@@ -10,15 +10,14 @@ import android.widget.Toast;
 import fr.neamar.notiflow.db.NotificationHelper;
 
 public class DismissNotification extends BroadcastReceiver {
-@Override
+	@Override
 	public void onReceive(Context context, Intent intent) {
 
 		NotificationHelper.cleanNotifications(context, intent.getStringExtra("flow"));
 
 		if (intent.getAction().equals("notification_cancelled")) {
 			Log.i("Notiflow", "Dismissed notification for " + intent.getStringExtra("flow"));
-		}
-		else {
+		} else {
 			Intent flowdockIntent;
 			if (intent.hasExtra("flow_url") && !intent.getStringExtra("flow_url").equals("")) {
 				flowdockIntent = new Intent();

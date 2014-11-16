@@ -45,7 +45,7 @@ public class NotificationHelper {
 		// Cursor query (String table, String[] columns,
 		// String selection, String[] selectionArgs, String groupBy, String
 		// having, String orderBy, String limit)
-		Cursor cursor = db.query("notifications", new String[] { "message" }, "flow = ?", new String[] { flow }, null, null, "_id DESC", "101");
+		Cursor cursor = db.query("notifications", new String[]{"message"}, "flow = ?", new String[]{flow}, null, null, "_id DESC", "101");
 
 		cursor.moveToFirst();
 		while (!cursor.isAfterLast()) {
@@ -63,11 +63,11 @@ public class NotificationHelper {
 		SQLiteDatabase db = getDatabase(context);
 		Long lastTimestamp = new Long(0);
 
-		Cursor cursor = db.query("notifications", new String[] { "date" }, "flow = ?", new String[] { flow }, null, null, "_id DESC", "1");
+		Cursor cursor = db.query("notifications", new String[]{"date"}, "flow = ?", new String[]{flow}, null, null, "_id DESC", "1");
 
 		cursor.moveToFirst();
 
-		if(!cursor.isAfterLast()) {
+		if (!cursor.isAfterLast()) {
 			lastTimestamp = cursor.getLong(0);
 		}
 
@@ -85,25 +85,24 @@ public class NotificationHelper {
 	public static void cleanNotifications(Context context, String flow) {
 		SQLiteDatabase db = getDatabase(context);
 
-		db.delete("notifications", "flow = ?", new String[] { flow });
+		db.delete("notifications", "flow = ?", new String[]{flow});
 		db.close();
 	}
 
 
 	/**
 	 * Return the number of rows ever inserted into the notification table
-	 *
 	 */
 	public static long getTotalCreatedRows(Context context) {
 		SQLiteDatabase db = getDatabase(context);
 
 		String query = "SELECT seq FROM SQLITE_SEQUENCE WHERE name = ?";
-		Cursor cursor = db.rawQuery(query, new String[] { "notifications" });
+		Cursor cursor = db.rawQuery(query, new String[]{"notifications"});
 
 		cursor.moveToFirst();
 
 		long notificationCount = 0;
-		if(!cursor.isAfterLast()) {
+		if (!cursor.isAfterLast()) {
 			notificationCount = cursor.getLong(cursor.getColumnIndex("seq"));
 		}
 		cursor.close();

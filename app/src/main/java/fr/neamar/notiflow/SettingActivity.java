@@ -131,10 +131,9 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 		PreferenceScreen preferenceScreen = getPreferenceScreen();
 
 		PreferenceGroup preferenceGroup = (PreferenceGroup) findPreference("notiflowStats");
-		if(notificationCount < 2) {
+		if (notificationCount < 2) {
 			preferenceScreen.removePreference(preferenceGroup);
-		}
-		else {
+		} else {
 			Preference totalStats = findPreference("notiflowStatsTotal");
 			String generatedText = getString(R.string.pref_stats_total_placeholder).replace("%s", String.valueOf(notificationCount));
 			totalStats.setTitle(generatedText);

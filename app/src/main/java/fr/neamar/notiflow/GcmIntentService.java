@@ -58,13 +58,13 @@ public class GcmIntentService extends IntentService {
 
 	private void initialiseImageLoader() {
 		ImageLoader imageLoader = ImageLoader.getInstance();
-		if(imageLoader.isInited()) {
+		if (imageLoader.isInited()) {
 			return;
 		}
 
 		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
-				.cacheInMemory(true)	// defaults to LruMemoryCache
-				.cacheOnDisk(true)		// defaults to UnlimitedDiscCache
+				.cacheInMemory(true)    // defaults to LruMemoryCache
+				.cacheOnDisk(true)        // defaults to UnlimitedDiscCache
 				.build();
 
 		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
@@ -159,17 +159,17 @@ public class GcmIntentService extends IntentService {
 
 		Log.d(TAG, "New message, type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
 
-		if(isOwnMessage && !notifyOwnMessages) {
+		if (isOwnMessage && !notifyOwnMessages) {
 			Log.i(TAG, "Canceling notification (user sent): " + extras.toString());
 			mNotificationManager.cancel(extras.getString("flow"), 0);
 			NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
 			return;
 
-		} else if(notifyType.equals("mentions") && !isMentioned && !isPrivate) {
+		} else if (notifyType.equals("mentions") && !isMentioned && !isPrivate) {
 			Log.i(TAG, "Skipping message (not mentioned): " + extras.toString());
 			return;
 
-		} else if(notifyType.equals("private") && !isPrivate) {
+		} else if (notifyType.equals("private") && !isPrivate) {
 			Log.i(TAG, "Skipping message (not private): " + extras.toString());
 			return;
 		}
@@ -275,20 +275,20 @@ public class GcmIntentService extends IntentService {
 		}
 
 		// Increase priority only for mentions and 1-1 conversations
-		if(isMentioned || isPrivate) {
+		if (isMentioned || isPrivate) {
 			mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
 		}
 
 		Notification notification = mBuilder
 				.setSmallIcon(R.drawable.notification)
-                .setColor(0x7BD3FB)
+				.setColor(0x7BD3FB)
 				.setContentTitle(flow)
 				.setContentText(Html.fromHtml(msg))
 				.setAutoCancel(true)
 				.setContentIntent(createClickedIntent(flow, extras))
 				.setDeleteIntent(createDismissedIntent(flow))
 				.setTicker(Html.fromHtml(msg))
-                .setCategory(Notification.CATEGORY_SOCIAL)
+				.setCategory(Notification.CATEGORY_SOCIAL)
 				.extend(wearableExtender)
 				.build();
 

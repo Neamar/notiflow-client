@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import fr.neamar.notiflow.db.NotificationHelper;
+import fr.neamar.notiflow.flowdock.FlowHelper;
 
 /**
  * This {@code IntentService} does the actual handling of the GCM message.
@@ -281,7 +282,7 @@ public class GcmIntentService extends IntentService {
 
 		Notification notification = mBuilder
 				.setSmallIcon(R.drawable.notification)
-                .setColor(0x7BD3FB)
+                .setColor(FlowHelper.getColorFromName(flow))
 				.setContentTitle(flow)
 				.setContentText(Html.fromHtml(msg))
 				.setAutoCancel(true)

@@ -20,7 +20,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_notification_category">
-
         <ListPreference
             android:defaultValue="all"
             android:entries="@array/notifyType"
@@ -36,13 +35,15 @@
             android:summary="@string/pref_notify_own_messages_summary"
             android:title="@string/pref_notify_own_messages">
         </CheckBoxPreference>
+    </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/pref_notification_vibrator">
         <CheckBoxPreference
-            android:defaultValue="false"
-            android:disableDependentsState="true"
-            android:key="prefNotifySilent"
-            android:summary="@string/pref_notify_silent_summary"
-            android:title="@string/pref_notify_silent">
+                android:defaultValue="false"
+                android:disableDependentsState="true"
+                android:key="prefNotifySilent"
+                android:summary="@string/pref_notify_silent_summary"
+                android:title="@string/pref_notify_silent">
         </CheckBoxPreference>
 
         <ListPreference

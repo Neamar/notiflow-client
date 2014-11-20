@@ -39,11 +39,11 @@
 
     <PreferenceCategory android:title="@string/pref_notification_vibrator">
         <CheckBoxPreference
-                android:defaultValue="false"
-                android:disableDependentsState="true"
-                android:key="prefNotifySilent"
-                android:summary="@string/pref_notify_silent_summary"
-                android:title="@string/pref_notify_silent">
+            android:defaultValue="false"
+            android:disableDependentsState="true"
+            android:key="prefNotifySilent"
+            android:summary="@string/pref_notify_silent_summary"
+            android:title="@string/pref_notify_silent">
         </CheckBoxPreference>
 
         <ListPreference

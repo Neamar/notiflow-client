@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="fr.neamar.notiflow"
-          xmlns:android="http://schemas.android.com/apk/res/android"
-          android:versionCode="24"
-          android:versionName="7.0.24">
+<manifest
+    package="fr.neamar.notiflow"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="24"
+    android:versionName="7.0.24">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
@@ -31,7 +32,8 @@
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.NOTIFICATION_PREFERENCES" />
+
+                <category android:name="android.intent.category.NOTIFICATION_PREFERENCES"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>

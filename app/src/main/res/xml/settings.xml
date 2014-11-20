@@ -1,66 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="@string/pref_token_category" >
+    <PreferenceCategory android:title="@string/pref_token_category">
         <Preference
-            android:title="@string/pref_get_token"
+            android:key="flowdockLink"
             android:summary="@string/pref_get_token_summary"
-            android:key="flowdockLink"/>
+            android:title="@string/pref_get_token"/>
 
         <EditTextPreference
-            android:title="@string/pref_token"
-            android:summary="@string/pref_token_summary"
-            android:hint="@string/pref_token_hint"
-            android:maxLength="32"
             android:digits="0123456789ABCDEFabcdef"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:typeface="monospace"
             android:gravity="center"
-            android:key="flowdockToken"/>
+            android:hint="@string/pref_token_hint"
+            android:key="flowdockToken"
+            android:maxLength="32"
+            android:summary="@string/pref_token_summary"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:title="@string/pref_token"
+            android:typeface="monospace"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_notification_category" >
-
+    <PreferenceCategory android:title="@string/pref_notification_category">
         <ListPreference
-            android:key="prefNotifyType"
+            android:defaultValue="all"
             android:entries="@array/notifyType"
 
-            android:defaultValue="all"
             android:entryValues="@array/notifyTypeValues"
+            android:key="prefNotifyType"
             android:summary="@string/pref_notify_type_summary"
-            android:title="@string/pref_notify_type" />
+            android:title="@string/pref_notify_type"/>
 
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="prefNotifyOwnMessages"
             android:summary="@string/pref_notify_own_messages_summary"
-            android:title="@string/pref_notify_own_messages" >
+            android:title="@string/pref_notify_own_messages">
         </CheckBoxPreference>
+    </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/pref_notification_vibrator">
         <CheckBoxPreference
             android:defaultValue="false"
+            android:disableDependentsState="true"
             android:key="prefNotifySilent"
             android:summary="@string/pref_notify_silent_summary"
-            android:disableDependentsState="true"
-            android:title="@string/pref_notify_silent" >
+            android:title="@string/pref_notify_silent">
         </CheckBoxPreference>
 
         <ListPreference
-            android:key="prefNotifyVibrationFrequency"
-            android:entries="@array/notifyDelay"
-            android:dependency="prefNotifySilent"
-
             android:defaultValue="60"
+            android:dependency="prefNotifySilent"
+            android:entries="@array/notifyDelay"
+
             android:entryValues="@array/notifyDelayValues"
+            android:key="prefNotifyVibrationFrequency"
             android:summary="@string/pref_notify_vibration_frequency_summary"
-            android:title="@string/pref_notify_vibration_frequency" />
+            android:title="@string/pref_notify_vibration_frequency"/>
 
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="prefNotifyWhenActive"
             android:summary="@string/pref_notify_when_active_summary"
-            android:title="@string/pref_notify_when_active" >
+            android:title="@string/pref_notify_when_active">
         </CheckBoxPreference>
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:key="notiflowStats"
+        android:title="@string/pref_notification_stats_category">
+        <Preference
+            android:enabled="false"
+            android:key="notiflowStatsTotal"
+            android:summary="@string/pref_stats_total_summary"
+            android:title="@string/pref_stats_total"/>
+    </PreferenceCategory>
 </PreferenceScreen>

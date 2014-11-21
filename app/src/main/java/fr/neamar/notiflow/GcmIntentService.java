@@ -279,9 +279,13 @@ public class GcmIntentService extends IntentService {
 			mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
 		}
 
+		// Retrieve color
+		// Default to 0x7BD3FB
+		int color = Integer.parseInt(extras.getString("color", "8115195"));
+
 		Notification notification = mBuilder
 				.setSmallIcon(R.drawable.notification)
-				.setColor(0x7BD3FB)
+				.setColor(color)
 				.setContentTitle(flow)
 				.setContentText(Html.fromHtml(msg))
 				.setAutoCancel(true)

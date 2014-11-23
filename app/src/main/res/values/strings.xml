@@ -45,5 +45,5 @@
     <string name="pref_stats_total_placeholder">%s notifications displayed</string>
     <string name="pref_stats_total_summary">Number of notifications displayed since installation</string>
     <string name="pref_notification_stats_category">Statistics</string>
-    <string name="pref_notification_vibrator">Vibrator preferences</string>
+    <string name="pref_notification_vibrator">Vibration preferences</string>
 </resources>

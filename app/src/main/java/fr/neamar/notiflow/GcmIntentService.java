@@ -107,13 +107,20 @@ public class GcmIntentService extends IntentService {
                 Boolean isSpecial = extras.containsKey("special");
                 Boolean isCleaner = extras.containsKey("seen");
                 String flow = extras.getString("flow", "");
-                String author = extras.getString("author", "???");
+                String author = extras.getString("author", "");
                 String content = extras.getString("content", "");
 
                 if (isCleaner) {
                     cleanNotification(extras);
                     return;
                 }
+
+                if(author.isEmpty()) {
+                    // Empty author.
+                    // This can be used to create new kind of messages: leav "author" empty and the app will automatically drop it.
+                    return;
+                }
+
                 if (isSpecial) {
                     // Wrap content in <em> tag
                     sendNotification(flow, "<b>" + author + "</b>: <em>" + content + "</em>", extras);

@@ -79,6 +79,8 @@ public class GcmIntentService extends IntentService {
         super.onCreate();
 
         initialiseImageLoader();
+
+        mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
     @Override
@@ -103,13 +105,14 @@ public class GcmIntentService extends IntentService {
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
                 // Post notification of received message.
                 Boolean isSpecial = extras.containsKey("special");
-                Boolean isCleaner = extras.containsKey("clean");
+                Boolean isCleaner = extras.containsKey("seen");
                 String flow = extras.getString("flow", "");
                 String author = extras.getString("author", "???");
                 String content = extras.getString("content", "");
 
                 if (isCleaner) {
                     cleanNotification(extras);
+                    return;
                 }
                 if (isSpecial) {
                     // Wrap content in <em> tag
@@ -140,7 +143,6 @@ public class GcmIntentService extends IntentService {
     }
 
     private PendingIntent createDismissedIntent(String flow) {
-
         Intent intent = new Intent(this, DismissNotification.class);
         intent.setAction("notification_cancelled");
         intent.putExtra("flow", flow);
@@ -159,7 +161,6 @@ public class GcmIntentService extends IntentService {
     // Put the message into a notification and post it.
     private void sendNotification(String flow, String msg, Bundle extras) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
         Boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
         Boolean isOwnMessage = extras.getString("own", "false").equals("true");

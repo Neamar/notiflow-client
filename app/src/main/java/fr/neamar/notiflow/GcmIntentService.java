@@ -48,7 +48,7 @@ import fr.neamar.notiflow.db.NotificationHelper;
  * wake lock.
  */
 public class GcmIntentService extends IntentService {
-    public static final String TAG = "Notiflow";
+    private static final String TAG = "Notiflow";
     NotificationCompat.Builder builder;
     private NotificationManager mNotificationManager;
 
@@ -153,7 +153,6 @@ public class GcmIntentService extends IntentService {
         Log.v(TAG, "Canceling notification (seen on app): " + extras.toString());
         mNotificationManager.cancel(extras.getString("flow"), 0);
         NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
-        return;
 
     }
 
@@ -270,7 +269,7 @@ public class GcmIntentService extends IntentService {
                 if (!hasSize) {
                     avatar += "/400";
                 } else {
-                    avatar.replaceFirst(sizeExpr, "/400");
+                    avatar = avatar.replaceFirst(sizeExpr, "/400");
                 }
             }
 

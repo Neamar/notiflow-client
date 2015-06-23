@@ -40,7 +40,7 @@ public class NotificationHelper {
     public static ArrayList<String> getNotifications(Context context, String flow) {
         SQLiteDatabase db = getDatabase(context);
 
-        ArrayList<String> flowNotifications = new ArrayList<String>();
+        ArrayList<String> flowNotifications = new ArrayList<>();
 
         // Cursor query (String table, String[] columns,
         // String selection, String[] selectionArgs, String groupBy, String
@@ -61,7 +61,7 @@ public class NotificationHelper {
 
     public static Date getLastNotificationDate(Context context, String flow) {
         SQLiteDatabase db = getDatabase(context);
-        Long lastTimestamp = new Long(0);
+        Long lastTimestamp = (long) 0;
 
         Cursor cursor = db.query("notifications", new String[]{"date"}, "flow = ?", new String[]{flow}, null, null, "_id DESC", "1");
 

@@ -4,15 +4,11 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-/**
- * Created by neamar on 10/24/14.
- */
+class DB extends SQLiteOpenHelper {
 
-public class DB extends SQLiteOpenHelper {
-
-    final static int DB_VERSION = 1;
-    final static String DB_NAME = "notiflow.s3db";
-    Context context;
+    private final static int DB_VERSION = 1;
+    private final static String DB_NAME = "notiflow.s3db";
+    private final Context context;
 
     public DB(Context context) {
         super(context, DB_NAME, null, DB_VERSION);

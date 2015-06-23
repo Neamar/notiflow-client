@@ -46,22 +46,22 @@ import static com.google.android.gms.common.GooglePlayServicesUtil.isUserRecover
 
 public class SettingActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    public static final String PROPERTY_FLOWDOCK = "flowdockToken";
-    public static final String PROPERTY_GCM_TOKEN = "gcm_token";
+    private static final String PROPERTY_FLOWDOCK = "flowdockToken";
+    private static final String PROPERTY_GCM_TOKEN = "gcm_token";
     /**
      * Tag used on log messages.
      */
-    static final String TAG = "Notiflow";
+    private static final String TAG = "Notiflow";
     private static final String PROPERTY_APP_VERSION = "appVersion";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     /**
      * Sender ID for GCM.
      */
-    String SENDER_ID = "880839177332";
-    GoogleCloudMessaging gcm;
-    Context context;
+    private final String SENDER_ID = "880839177332";
+    private GoogleCloudMessaging gcm;
+    private Context context;
 
-    String regid;
+    private String regid;
     private SharedPreferences prefs;
 
     /**
@@ -183,7 +183,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 
                 try {
                     // Add your data
-                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+                    List<NameValuePair> nameValuePairs = new ArrayList<>(2);
                     nameValuePairs.add(new BasicNameValuePair("flowdock_token", flowdockToken));
                     nameValuePairs.add(new BasicNameValuePair("gcm_token", gcmToken));
                     httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));

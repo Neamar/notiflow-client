@@ -48,255 +48,266 @@ import fr.neamar.notiflow.db.NotificationHelper;
  * wake lock.
  */
 public class GcmIntentService extends IntentService {
-	public static final String TAG = "Notiflow";
-	NotificationCompat.Builder builder;
-	private NotificationManager mNotificationManager;
+    private static final String TAG = "Notiflow";
+    NotificationCompat.Builder builder;
+    private NotificationManager mNotificationManager;
 
-	public GcmIntentService() {
-		super("GcmIntentService");
-	}
+    public GcmIntentService() {
+        super("GcmIntentService");
+    }
 
-	private void initialiseImageLoader() {
-		ImageLoader imageLoader = ImageLoader.getInstance();
-		if (imageLoader.isInited()) {
-			return;
-		}
+    private void initialiseImageLoader() {
+        ImageLoader imageLoader = ImageLoader.getInstance();
+        if (imageLoader.isInited()) {
+            return;
+        }
 
-		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
-				.cacheInMemory(true)    // defaults to LruMemoryCache
-				.cacheOnDisk(true)        // defaults to UnlimitedDiscCache
-				.build();
+        DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
+                .cacheInMemory(true)    // defaults to LruMemoryCache
+                .cacheOnDisk(true)        // defaults to UnlimitedDiscCache
+                .build();
 
-		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
-				.defaultDisplayImageOptions(defaultOptions)
-				.build();
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
+                .defaultDisplayImageOptions(defaultOptions)
+                .build();
 
-		imageLoader.init(config);
-	}
+        imageLoader.init(config);
+    }
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
+    @Override
+    public void onCreate() {
+        super.onCreate();
 
-		initialiseImageLoader();
-	}
+        initialiseImageLoader();
+    }
 
-	@Override
-	protected void onHandleIntent(Intent intent) {
-		Bundle extras = intent.getExtras();
-		GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
-		// The getMessageType() intent parameter must be the intent you received
-		// in your BroadcastReceiver.
-		String messageType = gcm.getMessageType(intent);
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        Bundle extras = intent.getExtras();
+        GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
+        // The getMessageType() intent parameter must be the intent you received
+        // in your BroadcastReceiver.
+        String messageType = gcm.getMessageType(intent);
 
-		if (!extras.isEmpty()) { // has effect of unparcelling Bundle
-			/*
-			 * Filter messages based on message type. Since it is likely that
+        if (!extras.isEmpty()) { // has effect of unparcelling Bundle
+            /*
+             * Filter messages based on message type. Since it is likely that
 			 * GCM will be extended in the future with new message types, we
 			 * ignore any message types we're not interested in.
 			 */
-			if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
-				sendNotification("Notiflow", "Send error: " + extras.toString(), extras);
-			} else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
-				sendNotification("Notiflow", "Deleted messages on server: " + extras.toString(), extras);
-				// If it's a regular GCM message, do some work.
-			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
-				// Post notification of received message.
-				Boolean isSpecial = extras.containsKey("special");
-				String flow = extras.getString("flow", "");
-				String author = extras.getString("author", "???");
-				String content = extras.getString("content", "");
+            if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
+                sendNotification("Notiflow", "Send error: " + extras.toString(), extras);
+            } else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
+                sendNotification("Notiflow", "You've been away a long time! Old messages have been dropped.", extras);
+                // If it's a regular GCM message, do some work.
+            } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
+                // Post notification of received message.
+                Boolean isSpecial = extras.containsKey("special");
+                Boolean isCleaner = extras.containsKey("clean");
+                String flow = extras.getString("flow", "");
+                String author = extras.getString("author", "???");
+                String content = extras.getString("content", "");
 
-				if (isSpecial) {
-					// Wrap content in <em> tag
-					sendNotification(flow, "<b>" + author + "</b>: <em>" + content + "</em>", extras);
-				} else if (content.startsWith("    ")) {
-					sendNotification(flow, "<b>" + author + "</b>: <tt>" + content + "</tt>", extras);
-				} else {
-					sendNotification(flow, "<b>" + author + "</b>: " + content, extras);
-				}
-			}
-		}
-		// Release the wake lock provided by the WakefulBroadcastReceiver.
-		GcmBroadcastReceiver.completeWakefulIntent(intent);
-	}
+                if (isCleaner) {
+                    cleanNotification(extras);
+                }
+                if (isSpecial) {
+                    // Wrap content in <em> tag
+                    sendNotification(flow, "<b>" + author + "</b>: <em>" + content + "</em>", extras);
+                } else if (content.startsWith("    ")) {
+                    sendNotification(flow, "<b>" + author + "</b>: <tt>" + content + "</tt>", extras);
+                } else {
+                    sendNotification(flow, "<b>" + author + "</b>: " + content, extras);
+                }
+            }
+        }
+        // Release the wake lock provided by the WakefulBroadcastReceiver.
+        GcmBroadcastReceiver.completeWakefulIntent(intent);
+    }
 
-	private PendingIntent createClickedIntent(String flow, Bundle extras) {
-		Intent intent = new Intent(this, DismissNotification.class);
-		intent.setAction("notification_clicked");
-		intent.putExtra("flow", flow);
+    private PendingIntent createClickedIntent(String flow, Bundle extras) {
+        Intent intent = new Intent(this, DismissNotification.class);
+        intent.setAction("notification_clicked");
+        intent.putExtra("flow", flow);
 
-		int requestCode = 0;
-		if (extras.containsKey("flow_url")) {
-			intent.putExtra("flow_url", extras.getString("flow_url"));
-			requestCode = extras.getString("flow_url").hashCode();
-		}
+        int requestCode = 0;
+        if (extras.containsKey("flow_url")) {
+            intent.putExtra("flow_url", extras.getString("flow_url"));
+            requestCode = extras.getString("flow_url").hashCode();
+        }
 
-		return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-	}
+        return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+    }
 
-	private PendingIntent createDismissedIntent(String flow) {
+    private PendingIntent createDismissedIntent(String flow) {
 
-		Intent intent = new Intent(this, DismissNotification.class);
-		intent.setAction("notification_cancelled");
-		intent.putExtra("flow", flow);
-		int requestCode = flow.hashCode();
+        Intent intent = new Intent(this, DismissNotification.class);
+        intent.setAction("notification_cancelled");
+        intent.putExtra("flow", flow);
+        int requestCode = flow.hashCode();
 
-		return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-	}
+        return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+    }
 
-	// Put the message into a notification and post it.
-	private void sendNotification(String flow, String msg, Bundle extras) {
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+    private void cleanNotification(Bundle extras) {
+        Log.v(TAG, "Canceling notification (seen on app): " + extras.toString());
+        mNotificationManager.cancel(extras.getString("flow"), 0);
+        NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
 
-		Boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
-		Boolean isOwnMessage = extras.getString("own", "false").equals("true");
+    }
 
-		String notifyType = prefs.getString("prefNotifyType", "all"); // all | mentions | private
-		Boolean isMentioned = extras.getString("mentioned", "false").equals("true");
-		Boolean isPrivate = extras.getString("private", "false").equals("true");
+    // Put the message into a notification and post it.
+    private void sendNotification(String flow, String msg, Bundle extras) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-		Log.d(TAG, "New message, type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
+        Boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
+        Boolean isOwnMessage = extras.getString("own", "false").equals("true");
 
-		if (isOwnMessage && !notifyOwnMessages) {
-			Log.i(TAG, "Canceling notification (user sent): " + extras.toString());
-			mNotificationManager.cancel(extras.getString("flow"), 0);
-			NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
-			return;
+        String notifyType = prefs.getString("prefNotifyType", "all"); // all | mentions | private
+        Boolean isMentioned = extras.getString("mentioned", "false").equals("true");
+        Boolean isPrivate = extras.getString("private", "false").equals("true");
 
-		} else if (notifyType.equals("mentions") && !isMentioned && !isPrivate) {
-			Log.i(TAG, "Skipping message (not mentioned): " + extras.toString());
-			return;
+        Log.d(TAG, "New message, type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
 
-		} else if (notifyType.equals("private") && !isPrivate) {
-			Log.i(TAG, "Skipping message (not private): " + extras.toString());
-			return;
-		}
+        if (isOwnMessage && !notifyOwnMessages) {
+            Log.i(TAG, "Canceling notification (user sent): " + extras.toString());
+            mNotificationManager.cancel(extras.getString("flow"), 0);
+            NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
+            return;
 
-		Date lastNotification = NotificationHelper.getLastNotificationDate(getApplicationContext(), flow);
-		NotificationHelper.addNotification(getApplicationContext(), flow, msg);
+        } else if (notifyType.equals("mentions") && !isMentioned && !isPrivate) {
+            Log.i(TAG, "Skipping message (not mentioned): " + extras.toString());
+            return;
 
-		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
-		NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender();
+        } else if (notifyType.equals("private") && !isPrivate) {
+            Log.i(TAG, "Skipping message (not private): " + extras.toString());
+            return;
+        }
 
-		Boolean silentMode = prefs.getBoolean("prefNotifySilent", false);
+        Date lastNotification = NotificationHelper.getLastNotificationDate(getApplicationContext(), flow);
+        NotificationHelper.addNotification(getApplicationContext(), flow, msg);
 
-		if (!silentMode) {
-			Date now = new Date();
-			Long timeSinceLastNotification = now.getTime() - lastNotification.getTime();
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
+        NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender();
 
-			Integer frequency = Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000;
-			Boolean notifyWhenActive = prefs.getBoolean("prefNotifyWhenActive", false);
-			Boolean isActive = extras.getString("active", "false").equals("true");
+        Boolean silentMode = prefs.getBoolean("prefNotifySilent", false);
 
-			if (timeSinceLastNotification < frequency) {
-				Log.i(TAG, "Skipping vibration -- cooldown in effect");
+        if (!silentMode) {
+            Date now = new Date();
+            Long timeSinceLastNotification = now.getTime() - lastNotification.getTime();
 
-			} else if (isActive && !notifyWhenActive) {
-				Log.i(TAG, "Skipping vibration -- user already active");
+            Integer frequency = Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000;
+            Boolean notifyWhenActive = prefs.getBoolean("prefNotifyWhenActive", false);
+            Boolean isActive = extras.getString("active", "false").equals("true");
 
-			} else {
-				mBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
-			}
-		}
+            if (timeSinceLastNotification < frequency) {
+                Log.i(TAG, "Skipping vibration -- cooldown in effect");
 
-		ArrayList<String> prevMessages = NotificationHelper.getNotifications(getApplicationContext(), flow);
-		Integer pendingCount = prevMessages.size();
+            } else if (isActive && !notifyWhenActive) {
+                Log.i(TAG, "Skipping vibration -- user already active");
 
-		if (pendingCount == 1) {
-			// Only one notification : display using BigTextStyle for multiline.
-			NotificationCompat.BigTextStyle style = new NotificationCompat.BigTextStyle()
-					.bigText(Html.fromHtml(msg));
+            } else {
+                mBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
+            }
+        }
 
-			mBuilder.setStyle(style);
-		} else {
-			// More than one notification: use inbox style, displaying up to 5 messages
-			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+        ArrayList<String> prevMessages = NotificationHelper.getNotifications(getApplicationContext(), flow);
+        Integer pendingCount = prevMessages.size();
 
-			for (int i = 0; i < Math.min(pendingCount, 5); i++) {
-				style.addLine(Html.fromHtml(prevMessages.get(i)));
-			}
+        if (pendingCount == 1) {
+            // Only one notification : display using BigTextStyle for multiline.
+            NotificationCompat.BigTextStyle style = new NotificationCompat.BigTextStyle()
+                    .bigText(Html.fromHtml(msg));
 
-			mBuilder
-					.setStyle(style)
-					.setContentInfo(Integer.toString(pendingCount))
-					.setNumber(pendingCount);
+            mBuilder.setStyle(style);
+        } else {
+            // More than one notification: use inbox style, displaying up to 5 messages
+            NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
 
-			NotificationCompat.BigTextStyle pageStyle = new NotificationCompat.BigTextStyle();
-			StringBuilder pageText = new StringBuilder();
+            for (int i = 0; i < Math.min(pendingCount, 5); i++) {
+                style.addLine(Html.fromHtml(prevMessages.get(i)));
+            }
 
-			// And then add a second page for Wearables, displaying the whole pending conversation
-			for (int i = pendingCount - 1; i >= 0; i--) {
-				if (i < pendingCount - 1) {
-					pageText.append("<br /><br />");
-				}
-				pageText.append(prevMessages.get(i));
-			}
+            mBuilder
+                    .setStyle(style)
+                    .setContentInfo(Integer.toString(pendingCount))
+                    .setNumber(pendingCount);
 
-			pageStyle.bigText(Html.fromHtml(pageText.toString()));
+            NotificationCompat.BigTextStyle pageStyle = new NotificationCompat.BigTextStyle();
+            StringBuilder pageText = new StringBuilder();
 
-			Notification secondPage = new NotificationCompat.Builder(this)
-					.setStyle(pageStyle)
-					.extend(new NotificationCompat.WearableExtender()
-							.setStartScrollBottom(true))
-					.build();
+            // And then add a second page for Wearables, displaying the whole pending conversation
+            for (int i = pendingCount - 1; i >= 0; i--) {
+                if (i < pendingCount - 1) {
+                    pageText.append("<br /><br />");
+                }
+                pageText.append(prevMessages.get(i));
+            }
 
-			wearableExtender.addPage(secondPage);
+            pageStyle.bigText(Html.fromHtml(pageText.toString()));
 
-		}
+            Notification secondPage = new NotificationCompat.Builder(this)
+                    .setStyle(pageStyle)
+                    .extend(new NotificationCompat.WearableExtender()
+                            .setStartScrollBottom(true))
+                    .build();
 
-		// Set large icon, which gets used for wearable background as well
-		String avatar = extras.getString("avatar", "");
-		if (!avatar.equals("")) {
+            wearableExtender.addPage(secondPage);
 
-			String sizeExpr = "(/\\d+/?)$";
-			Boolean isCloudFront = avatar.contains("cloudfront");
-			Boolean hasSize = avatar.matches(".*" + sizeExpr);
+        }
 
-			if (isCloudFront) {
-				if (!hasSize) {
-					avatar += "/400";
-				} else {
-					avatar.replaceFirst(sizeExpr, "/400");
-				}
-			}
+        // Set large icon, which gets used for wearable background as well
+        String avatar = extras.getString("avatar", "");
+        if (!avatar.equals("")) {
 
-			ImageLoader imageLoader = ImageLoader.getInstance();
-			Bitmap image = imageLoader.loadImageSync(avatar);
+            String sizeExpr = "(/\\d+/?)$";
+            Boolean isCloudFront = avatar.contains("cloudfront");
+            Boolean hasSize = avatar.matches(".*" + sizeExpr);
 
-			// scale for notification tray
-			int height = (int) getResources().getDimension(android.R.dimen.notification_large_icon_height);
-			int width = (int) getResources().getDimension(android.R.dimen.notification_large_icon_width);
-			Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
+            if (isCloudFront) {
+                if (!hasSize) {
+                    avatar += "/400";
+                } else {
+                    avatar = avatar.replaceFirst(sizeExpr, "/400");
+                }
+            }
 
-			mBuilder.setLargeIcon(scaledImage);
-			wearableExtender.setBackground(image);
-		}
+            ImageLoader imageLoader = ImageLoader.getInstance();
+            Bitmap image = imageLoader.loadImageSync(avatar);
 
-		// Increase priority only for mentions and 1-1 conversations
-		if (isMentioned || isPrivate) {
-			mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
-		}
+            // scale for notification tray
+            int height = (int) getResources().getDimension(android.R.dimen.notification_large_icon_height);
+            int width = (int) getResources().getDimension(android.R.dimen.notification_large_icon_width);
+            Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
 
-		// Retrieve color
-		// Default to 0x7BD3FB
-		int color = Integer.parseInt(extras.getString("color", "8115195"));
+            mBuilder.setLargeIcon(scaledImage);
+            wearableExtender.setBackground(image);
+        }
 
-		Notification notification = mBuilder
-				.setSmallIcon(R.drawable.notification)
-				.setColor(color)
-				.setContentTitle(flow)
-				.setContentText(Html.fromHtml(msg))
-				.setAutoCancel(true)
-				.setContentIntent(createClickedIntent(flow, extras))
-				.setDeleteIntent(createDismissedIntent(flow))
-				.setTicker(Html.fromHtml(msg))
-				.setCategory(Notification.CATEGORY_SOCIAL)
-				.extend(wearableExtender)
-				.build();
+        // Increase priority only for mentions and 1-1 conversations
+        if (isMentioned || isPrivate) {
+            mBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        }
 
-		mNotificationManager.notify(flow, 0, notification);
-		Log.i(TAG, "Displaying message: " + extras.toString());
-	}
+        // Retrieve color
+        // Default to 0x7BD3FB
+        int color = Integer.parseInt(extras.getString("color", "8115195"));
+
+        Notification notification = mBuilder
+                .setSmallIcon(R.drawable.notification)
+                .setColor(color)
+                .setContentTitle(flow)
+                .setContentText(Html.fromHtml(msg))
+                .setAutoCancel(true)
+                .setContentIntent(createClickedIntent(flow, extras))
+                .setDeleteIntent(createDismissedIntent(flow))
+                .setTicker(Html.fromHtml(msg))
+                .setCategory(Notification.CATEGORY_SOCIAL)
+                .extend(wearableExtender)
+                .build();
+
+        mNotificationManager.notify(flow, 0, notification);
+        Log.i(TAG, "Displaying message: " + extras.toString());
+    }
 }

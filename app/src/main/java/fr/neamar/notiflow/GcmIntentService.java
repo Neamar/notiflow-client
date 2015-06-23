@@ -98,15 +98,19 @@ public class GcmIntentService extends IntentService {
 			if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
 				sendNotification("Notiflow", "Send error: " + extras.toString(), extras);
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
-				sendNotification("Notiflow", "Deleted messages on server: " + extras.toString(), extras);
+				sendNotification("Notiflow", "You've been away a long time! Old messages have been dropped.", extras);
 				// If it's a regular GCM message, do some work.
 			} else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
 				// Post notification of received message.
 				Boolean isSpecial = extras.containsKey("special");
+				Boolean isCleaner = extras.containsKey("clean");
 				String flow = extras.getString("flow", "");
 				String author = extras.getString("author", "???");
 				String content = extras.getString("content", "");
 
+				if(isCleaner) {
+					cleanNotification(extras);
+				}
 				if (isSpecial) {
 					// Wrap content in <em> tag
 					sendNotification(flow, "<b>" + author + "</b>: <em>" + content + "</em>", extras);
@@ -143,6 +147,14 @@ public class GcmIntentService extends IntentService {
 		int requestCode = flow.hashCode();
 
 		return PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+	}
+
+	private void cleanNotification(Bundle extras) {
+		Log.v(TAG, "Canceling notification (seen on app): " + extras.toString());
+		mNotificationManager.cancel(extras.getString("flow"), 0);
+		NotificationHelper.cleanNotifications(getApplicationContext(), extras.getString("flow"));
+		return;
+
 	}
 
 	// Put the message into a notification and post it.

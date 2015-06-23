@@ -106,7 +106,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 							@Override
 							public boolean onPreferenceClick(Preference preference) {
 								Intent intent = new Intent(Intent.ACTION_VIEW);
-								intent.setData(Uri.parse("https://www.flowdock.com/account/tokens"));
+								intent.setData(Uri.parse("https://www.flowdock.com/account/tokens#reset-api-token"));
 								startActivity(intent);
 								return true;
 							}

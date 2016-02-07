@@ -48,6 +48,8 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 
     private static final String PROPERTY_FLOWDOCK = "flowdockToken";
     private static final String PROPERTY_GCM_TOKEN = "gcm_token";
+    public static final String PROPERTY_FLOW_LIST = "flowList";
+
     /**
      * Tag used on log messages.
      */
@@ -199,7 +201,10 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 
                     if (response.getStatusLine().getStatusCode() == 200) {
                         success = true;
-                        return "Notification are on their ways... Followed flows: " + builder.toString();
+
+                        String flowsString = builder.toString();
+
+                        return "Notifications are on their ways... Followed flows: " + flowsString;
                     } else {
                         return "Unable to match token. Error: " + builder.toString();
                     }

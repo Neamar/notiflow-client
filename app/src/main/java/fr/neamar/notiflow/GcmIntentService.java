@@ -37,6 +37,8 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import fr.neamar.notiflow.db.NotificationHelper;
 
@@ -115,7 +117,7 @@ public class GcmIntentService extends IntentService {
                     return;
                 }
 
-                if(author.isEmpty()) {
+                if (author.isEmpty()) {
                     // Empty author.
                     // This can be used to create new kind of messages: leav "author" empty and the app will automatically drop it.
                     return;
@@ -178,6 +180,7 @@ public class GcmIntentService extends IntentService {
 
         Log.d(TAG, "New message, type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
 
+        Set<String> mutedFlows = prefs.getStringSet("mutedFlows", new HashSet<String>());
         if (isOwnMessage && !notifyOwnMessages) {
             Log.i(TAG, "Canceling notification (user sent): " + extras.toString());
             mNotificationManager.cancel(extras.getString("flow"), 0);
@@ -190,6 +193,9 @@ public class GcmIntentService extends IntentService {
 
         } else if (notifyType.equals("private") && !isPrivate) {
             Log.i(TAG, "Skipping message (not private): " + extras.toString());
+            return;
+        } else if (mutedFlows.contains(flow)) {
+            Log.i(TAG, "Skipping message (muted flow): " + extras.toString());
             return;
         }
 
@@ -317,5 +323,13 @@ public class GcmIntentService extends IntentService {
 
         mNotificationManager.notify(flow, 0, notification);
         Log.i(TAG, "Displaying message: " + extras.toString());
+
+        // Add flow to list of currenctly know flows
+        Set<String> knownFlows = prefs.getStringSet("knownFlows", new HashSet<String>());
+        if(!knownFlows.contains(flow)) {
+            knownFlows.add(flow);
+            Log.i(TAG, "Added " + flow + " to known flows.");
+            prefs.edit().putStringSet("knownFlows", knownFlows).apply();
+        }
     }
 }

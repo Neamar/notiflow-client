@@ -5,7 +5,7 @@
         <Preference
             android:key="flowdockLink"
             android:summary="@string/pref_get_token_summary"
-            android:title="@string/pref_get_token"/>
+            android:title="@string/pref_get_token" />
 
         <EditTextPreference
             android:digits="0123456789ABCDEFabcdef"
@@ -16,7 +16,7 @@
             android:summary="@string/pref_token_summary"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:title="@string/pref_token"
-            android:typeface="monospace"/>
+            android:typeface="monospace" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_notification_category">
@@ -27,14 +27,23 @@
             android:entryValues="@array/notifyTypeValues"
             android:key="prefNotifyType"
             android:summary="@string/pref_notify_type_summary"
-            android:title="@string/pref_notify_type"/>
+            android:title="@string/pref_notify_type" />
 
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="prefNotifyOwnMessages"
             android:summary="@string/pref_notify_own_messages_summary"
-            android:title="@string/pref_notify_own_messages">
-        </CheckBoxPreference>
+            android:title="@string/pref_notify_own_messages"></CheckBoxPreference>
+
+
+        <fr.neamar.notiflow.MutedFlowsPreference
+            android:defaultValue="@array/flows_list_placeholder"
+            android:dialogTitle="Select flows to mute"
+            android:entries="@array/flows_list_placeholder"
+            android:entryValues="@array/flows_list_placeholder"
+            android:key="mutedFlows"
+            android:summary="Mute some flows (no notification)"
+            android:title="Muted flows" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_notification_vibrator">
@@ -43,8 +52,7 @@
             android:disableDependentsState="true"
             android:key="prefNotifySilent"
             android:summary="@string/pref_notify_silent_summary"
-            android:title="@string/pref_notify_silent">
-        </CheckBoxPreference>
+            android:title="@string/pref_notify_silent"></CheckBoxPreference>
 
         <ListPreference
             android:defaultValue="60"
@@ -54,14 +62,13 @@
             android:entryValues="@array/notifyDelayValues"
             android:key="prefNotifyVibrationFrequency"
             android:summary="@string/pref_notify_vibration_frequency_summary"
-            android:title="@string/pref_notify_vibration_frequency"/>
+            android:title="@string/pref_notify_vibration_frequency" />
 
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="prefNotifyWhenActive"
             android:summary="@string/pref_notify_when_active_summary"
-            android:title="@string/pref_notify_when_active">
-        </CheckBoxPreference>
+            android:title="@string/pref_notify_when_active"></CheckBoxPreference>
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -71,6 +78,6 @@
             android:enabled="false"
             android:key="notiflowStatsTotal"
             android:summary="@string/pref_stats_total_summary"
-            android:title="@string/pref_stats_total"/>
+            android:title="@string/pref_stats_total" />
     </PreferenceCategory>
 </PreferenceScreen>

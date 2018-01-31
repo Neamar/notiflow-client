@@ -318,7 +318,7 @@ public class GcmIntentService extends IntentService {
                 .setContentIntent(createClickedIntent(flow, extras))
                 .setDeleteIntent(createDismissedIntent(flow))
                 .setTicker(Html.fromHtml(msg))
-                .setCategory(Notification.CATEGORY_SOCIAL)
+                .setCategory(NotificationCompat.CATEGORY_SOCIAL)
                 .extend(wearableExtender)
                 .setChannelId(flow)
                 .build();

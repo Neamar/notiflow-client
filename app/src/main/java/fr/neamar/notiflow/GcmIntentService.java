@@ -18,12 +18,14 @@ package fr.neamar.notiflow;
 
 import android.app.IntentService;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -51,7 +53,6 @@ import fr.neamar.notiflow.db.NotificationHelper;
  */
 public class GcmIntentService extends IntentService {
     private static final String TAG = "Notiflow";
-    NotificationCompat.Builder builder;
     private NotificationManager mNotificationManager;
 
     public GcmIntentService() {
@@ -202,8 +203,7 @@ public class GcmIntentService extends IntentService {
         Date lastNotification = NotificationHelper.getLastNotificationDate(getApplicationContext(), flow);
         NotificationHelper.addNotification(getApplicationContext(), flow, msg);
 
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
-        NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender();
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, flow);
 
         Boolean silentMode = prefs.getBoolean("prefNotifySilent", false);
 
@@ -239,7 +239,7 @@ public class GcmIntentService extends IntentService {
             // More than one notification: use inbox style, displaying up to 5 messages
             NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
 
-            for (int i = 0; i < Math.min(pendingCount, 5); i++) {
+            for (int i = 0; i < pendingCount; i++) {
                 style.addLine(Html.fromHtml(prevMessages.get(i)));
             }
 
@@ -247,28 +247,6 @@ public class GcmIntentService extends IntentService {
                     .setStyle(style)
                     .setContentInfo(Integer.toString(pendingCount))
                     .setNumber(pendingCount);
-
-            NotificationCompat.BigTextStyle pageStyle = new NotificationCompat.BigTextStyle();
-            StringBuilder pageText = new StringBuilder();
-
-            // And then add a second page for Wearables, displaying the whole pending conversation
-            for (int i = pendingCount - 1; i >= 0; i--) {
-                if (i < pendingCount - 1) {
-                    pageText.append("<br /><br />");
-                }
-                pageText.append(prevMessages.get(i));
-            }
-
-            pageStyle.bigText(Html.fromHtml(pageText.toString()));
-
-            Notification secondPage = new NotificationCompat.Builder(this)
-                    .setStyle(pageStyle)
-                    .extend(new NotificationCompat.WearableExtender()
-                            .setStartScrollBottom(true))
-                    .build();
-
-            wearableExtender.addPage(secondPage);
-
         }
 
         // Set large icon, which gets used for wearable background as well
@@ -296,7 +274,6 @@ public class GcmIntentService extends IntentService {
             Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
 
             mBuilder.setLargeIcon(scaledImage);
-            wearableExtender.setBackground(image);
         }
 
         // Increase priority only for mentions and 1-1 conversations
@@ -317,16 +294,23 @@ public class GcmIntentService extends IntentService {
                 .setContentIntent(createClickedIntent(flow, extras))
                 .setDeleteIntent(createDismissedIntent(flow))
                 .setTicker(Html.fromHtml(msg))
-                .setCategory(Notification.CATEGORY_SOCIAL)
-                .extend(wearableExtender)
+                .setCategory(NotificationCompat.CATEGORY_SOCIAL)
+                .setChannelId(flow)
                 .build();
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(flow,
+                    String.format(getString(R.string.messages_from), flow),
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            mNotificationManager.createNotificationChannel(channel);
+        }
         mNotificationManager.notify(flow, 0, notification);
+
         Log.i(TAG, "Displaying message: " + extras.toString());
 
-        // Add flow to list of currenctly know flows
+        // Add flow to list of currently known flows
         Set<String> knownFlows = prefs.getStringSet("knownFlows", new HashSet<String>());
-        if(!knownFlows.contains(flow)) {
+        if (!knownFlows.contains(flow)) {
             knownFlows.add(flow);
             Log.i(TAG, "Added " + flow + " to known flows.");
             prefs.edit().putStringSet("knownFlows", knownFlows).apply();

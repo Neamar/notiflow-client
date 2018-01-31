@@ -47,6 +47,8 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
     private static final String TAG = "Notiflow";
 
     public static class RegisterWithServer extends AsyncTask<Void, Void, String> {
+        private static final String TAG = "REGISTER_SERVER";
+
         private final Boolean silent;
         private boolean success = false;
         private WeakReference<Context> context;
@@ -116,6 +118,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
             if (!silent && context.get() != null) {
                 Toast.makeText(context.get(), msg, Toast.LENGTH_LONG).show();
             }
+            Log.i(TAG, msg);
 
             if (success) {
                 Log.i(TAG, "Registered!");
@@ -173,6 +176,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equalsIgnoreCase(PROPERTY_FLOWDOCK)) {
+            Log.i(TAG, "Registering token");
             new RegisterWithServer(this, false).execute(null, null, null);
         }
     }

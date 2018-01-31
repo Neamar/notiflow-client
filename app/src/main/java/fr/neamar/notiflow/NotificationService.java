@@ -28,7 +28,7 @@ import java.util.Set;
 
 import fr.neamar.notiflow.db.NotificationHelper;
 
-public class FcmListenerService extends FirebaseMessagingService {
+public class NotificationService extends FirebaseMessagingService {
     public static final String TAG = "FCM_LISTENER_SERVICE";
     NotificationCompat.Builder builder;
     private NotificationManager mNotificationManager;

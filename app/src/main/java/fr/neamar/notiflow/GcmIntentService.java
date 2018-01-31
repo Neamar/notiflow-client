@@ -18,12 +18,14 @@ package fr.neamar.notiflow;
 
 import android.app.IntentService;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -51,7 +53,6 @@ import fr.neamar.notiflow.db.NotificationHelper;
  */
 public class GcmIntentService extends IntentService {
     private static final String TAG = "Notiflow";
-    NotificationCompat.Builder builder;
     private NotificationManager mNotificationManager;
 
     public GcmIntentService() {
@@ -202,7 +203,7 @@ public class GcmIntentService extends IntentService {
         Date lastNotification = NotificationHelper.getLastNotificationDate(getApplicationContext(), flow);
         NotificationHelper.addNotification(getApplicationContext(), flow, msg);
 
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, flow);
         NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender();
 
         Boolean silentMode = prefs.getBoolean("prefNotifySilent", false);
@@ -319,12 +320,20 @@ public class GcmIntentService extends IntentService {
                 .setTicker(Html.fromHtml(msg))
                 .setCategory(Notification.CATEGORY_SOCIAL)
                 .extend(wearableExtender)
+                .setChannelId(flow)
                 .build();
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(flow,
+                    String.format(getString(R.string.messages_from), flow),
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            mNotificationManager.createNotificationChannel(channel);
+        }
         mNotificationManager.notify(flow, 0, notification);
+
         Log.i(TAG, "Displaying message: " + extras.toString());
 
-        // Add flow to list of currenctly know flows
+        // Add flow to list of currently known flows
         Set<String> knownFlows = prefs.getStringSet("knownFlows", new HashSet<String>());
         if(!knownFlows.contains(flow)) {
             knownFlows.add(flow);

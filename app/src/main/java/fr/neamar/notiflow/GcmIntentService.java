@@ -204,7 +204,6 @@ public class GcmIntentService extends IntentService {
         NotificationHelper.addNotification(getApplicationContext(), flow, msg);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, flow);
-        NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender();
 
         Boolean silentMode = prefs.getBoolean("prefNotifySilent", false);
 
@@ -240,7 +239,7 @@ public class GcmIntentService extends IntentService {
             // More than one notification: use inbox style, displaying up to 5 messages
             NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
 
-            for (int i = 0; i < Math.min(pendingCount, 5); i++) {
+            for (int i = 0; i < pendingCount; i++) {
                 style.addLine(Html.fromHtml(prevMessages.get(i)));
             }
 
@@ -248,28 +247,6 @@ public class GcmIntentService extends IntentService {
                     .setStyle(style)
                     .setContentInfo(Integer.toString(pendingCount))
                     .setNumber(pendingCount);
-
-            NotificationCompat.BigTextStyle pageStyle = new NotificationCompat.BigTextStyle();
-            StringBuilder pageText = new StringBuilder();
-
-            // And then add a second page for Wearables, displaying the whole pending conversation
-            for (int i = pendingCount - 1; i >= 0; i--) {
-                if (i < pendingCount - 1) {
-                    pageText.append("<br /><br />");
-                }
-                pageText.append(prevMessages.get(i));
-            }
-
-            pageStyle.bigText(Html.fromHtml(pageText.toString()));
-
-            Notification secondPage = new NotificationCompat.Builder(this)
-                    .setStyle(pageStyle)
-                    .extend(new NotificationCompat.WearableExtender()
-                            .setStartScrollBottom(true))
-                    .build();
-
-            wearableExtender.addPage(secondPage);
-
         }
 
         // Set large icon, which gets used for wearable background as well
@@ -297,7 +274,6 @@ public class GcmIntentService extends IntentService {
             Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
 
             mBuilder.setLargeIcon(scaledImage);
-            wearableExtender.setBackground(image);
         }
 
         // Increase priority only for mentions and 1-1 conversations
@@ -319,7 +295,6 @@ public class GcmIntentService extends IntentService {
                 .setDeleteIntent(createDismissedIntent(flow))
                 .setTicker(Html.fromHtml(msg))
                 .setCategory(NotificationCompat.CATEGORY_SOCIAL)
-                .extend(wearableExtender)
                 .setChannelId(flow)
                 .build();
 
@@ -335,7 +310,7 @@ public class GcmIntentService extends IntentService {
 
         // Add flow to list of currently known flows
         Set<String> knownFlows = prefs.getStringSet("knownFlows", new HashSet<String>());
-        if(!knownFlows.contains(flow)) {
+        if (!knownFlows.contains(flow)) {
             knownFlows.add(flow);
             Log.i(TAG, "Added " + flow + " to known flows.");
             prefs.edit().putStringSet("knownFlows", knownFlows).apply();

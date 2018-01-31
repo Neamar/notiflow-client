@@ -6,14 +6,6 @@
     android:versionName="10.0.28">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
-
-    <permission
-        android:name="fr.neamar.notiflow.gcm.permission.C2D_MESSAGE"
-        android:protectionLevel="signature"/>
-
-    <uses-permission android:name="fr.neamar.notiflow.permission.C2D_MESSAGE"/>
 
     <application
         android:allowBackup="true"
@@ -27,6 +19,7 @@
         <activity
             android:name=".SettingActivity"
             android:label="@string/app_name"
+            android:exported="false"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -36,22 +29,18 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name="fr.neamar.notiflow.GcmBroadcastReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND">
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
-
-                <category android:name="com.example.gcm"/>
-            </intent-filter>
-        </receiver>
         <receiver android:name=".DismissNotification">
             <intent-filter>
                 <action android:name="notification_cancelled"/>
             </intent-filter>
         </receiver>
 
-        <service android:name="fr.neamar.notiflow.GcmIntentService"/>
+        <service
+            android:name=".FcmListenerService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

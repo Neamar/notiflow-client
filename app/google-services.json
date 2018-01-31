@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "880839177332",
+    "firebase_url": "https://linear-poet-544.firebaseio.com",
+    "project_id": "linear-poet-544",
+    "storage_bucket": "linear-poet-544.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:880839177332:android:ee70b1b063824d75",
+        "android_client_info": {
+          "package_name": "fr.neamar.notiflow"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "880839177332-mohpl9k7e2u8516p8ulo5n2ukg6qeqlt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFrrUUxjp6WOuysF2rV5tLyvUaguF2AGY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

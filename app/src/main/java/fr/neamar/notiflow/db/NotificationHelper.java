@@ -106,6 +106,7 @@ public class NotificationHelper {
             notificationCount = cursor.getLong(cursor.getColumnIndex("seq"));
         }
         cursor.close();
+        db.close();
 
         return notificationCount;
 

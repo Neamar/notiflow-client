@@ -20,6 +20,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:27.0.2'
     compile 'com.android.support:mediarouter-v7:27.0.2'
     compile 'com.android.support:support-v4:27.0.2'
-    compile 'com.google.android.gms:play-services-gcm:11.8.0'
+    compile "com.google.firebase:firebase-messaging:11.8.0"
     compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
 }
+
+apply plugin: 'com.google.gms.google-services'

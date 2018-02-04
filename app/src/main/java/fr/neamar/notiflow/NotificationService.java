@@ -134,11 +134,11 @@ public class NotificationService extends FirebaseMessagingService {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         Boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
-        Boolean isOwnMessage = getOrDefault(extras,"own", "false").equals("true");
+        Boolean isOwnMessage = getOrDefault(extras, "own", "false").equals("true");
 
         String notifyType = prefs.getString("prefNotifyType", "all"); // all | mentions | private
-        Boolean isMentioned = getOrDefault(extras,"mentioned", "false").equals("true");
-        Boolean isPrivate = getOrDefault(extras,"private", "false").equals("true");
+        Boolean isMentioned = getOrDefault(extras, "mentioned", "false").equals("true");
+        Boolean isPrivate = getOrDefault(extras, "private", "false").equals("true");
 
         Log.d(TAG, "New message, type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
 
@@ -168,13 +168,16 @@ public class NotificationService extends FirebaseMessagingService {
 
         Boolean silentMode = prefs.getBoolean("prefNotifySilent", false);
 
-        if (!silentMode) {
+        if (silentMode) {
+            Log.i(TAG, "Silent mode, no vibration.");
+            mBuilder.setDefaults(NotificationCompat.DEFAULT_LIGHTS);
+        } else {
             Date now = new Date();
             Long timeSinceLastNotification = now.getTime() - lastNotification.getTime();
 
             Integer frequency = Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000;
             Boolean notifyWhenActive = prefs.getBoolean("prefNotifyWhenActive", false);
-            Boolean isActive = getOrDefault(extras,"active", "false").equals("true");
+            Boolean isActive = getOrDefault(extras, "active", "false").equals("true");
 
             if (timeSinceLastNotification < frequency) {
                 Log.i(TAG, "Skipping vibration -- cooldown in effect");
@@ -183,7 +186,7 @@ public class NotificationService extends FirebaseMessagingService {
                 Log.i(TAG, "Skipping vibration -- user already active");
 
             } else {
-                mBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
+                mBuilder.setDefaults(NotificationCompat.DEFAULT_VIBRATE | NotificationCompat.DEFAULT_LIGHTS);
             }
         }
 
@@ -211,7 +214,7 @@ public class NotificationService extends FirebaseMessagingService {
         }
 
         // Set large icon, which gets used for wearable background as well
-        String avatar = getOrDefault(extras,"avatar", "");
+        String avatar = getOrDefault(extras, "avatar", "");
         if (!avatar.equals("")) {
 
             String sizeExpr = "(/\\d+/?)$";
@@ -244,7 +247,7 @@ public class NotificationService extends FirebaseMessagingService {
 
         // Retrieve color
         // Default to 0x7BD3FB
-        int color = Integer.parseInt(getOrDefault(extras,"color", "8115195"));
+        int color = Integer.parseInt(getOrDefault(extras, "color", "8115195"));
 
         Notification notification = mBuilder
                 .setSmallIcon(R.drawable.notification)

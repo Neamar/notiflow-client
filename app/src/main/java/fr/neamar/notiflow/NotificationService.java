@@ -140,6 +140,8 @@ public class NotificationService extends FirebaseMessagingService {
         Boolean isMentioned = getOrDefault(extras, "mentioned", "false").equals("true");
         Boolean isPrivate = getOrDefault(extras, "private", "false").equals("true");
 
+        Boolean vibratorOnCooldown = false;
+
         Log.d(TAG, "New message, type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
 
         Set<String> mutedFlows = prefs.getStringSet("mutedFlows", new HashSet<String>());
@@ -170,6 +172,7 @@ public class NotificationService extends FirebaseMessagingService {
 
         if (silentMode) {
             Log.i(TAG, "Silent mode, no vibration.");
+            vibratorOnCooldown = true;
             mBuilder.setDefaults(NotificationCompat.DEFAULT_LIGHTS);
         } else {
             Date now = new Date();
@@ -181,9 +184,11 @@ public class NotificationService extends FirebaseMessagingService {
 
             if (timeSinceLastNotification < frequency) {
                 Log.i(TAG, "Skipping vibration -- cooldown in effect");
+                vibratorOnCooldown = true;
 
             } else if (isActive && !notifyWhenActive) {
                 Log.i(TAG, "Skipping vibration -- user already active");
+                vibratorOnCooldown = true;
 
             } else {
                 mBuilder.setDefaults(NotificationCompat.DEFAULT_VIBRATE | NotificationCompat.DEFAULT_LIGHTS);
@@ -249,6 +254,28 @@ public class NotificationService extends FirebaseMessagingService {
         // Default to 0x7BD3FB
         int color = Integer.parseInt(getOrDefault(extras, "color", "8115195"));
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(flow,
+                    String.format(getString(R.string.messages_from), flow),
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            mNotificationManager.createNotificationChannel(channel);
+
+            NotificationChannel cooldownChannel = new NotificationChannel(flow + "_cooldown",
+                    String.format(getString(R.string.messages_from_cooldown), flow),
+                    NotificationManager.IMPORTANCE_LOW);
+            cooldownChannel.setVibrationPattern(null);
+            cooldownChannel.setSound(null, null);
+            mNotificationManager.createNotificationChannel(cooldownChannel);
+
+            if(vibratorOnCooldown) {
+                Log.i(TAG, "Using cooldown channel.");
+                mBuilder.setChannelId(cooldownChannel.getId());
+            }
+            else {
+                mBuilder.setChannelId(channel.getId());
+            }
+        }
+
         Notification notification = mBuilder
                 .setSmallIcon(R.drawable.notification)
                 .setColor(color)
@@ -260,15 +287,8 @@ public class NotificationService extends FirebaseMessagingService {
                 .setTicker(Html.fromHtml(msg))
                 .setCategory(NotificationCompat.CATEGORY_SOCIAL)
                 .setChannelId(flow)
-                .setOnlyAlertOnce(true)
                 .build();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(flow,
-                    String.format(getString(R.string.messages_from), flow),
-                    NotificationManager.IMPORTANCE_DEFAULT);
-            mNotificationManager.createNotificationChannel(channel);
-        }
         mNotificationManager.notify(flow, 0, notification);
 
         Log.i(TAG, "Displaying message: " + extras.toString());

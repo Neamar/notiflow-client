@@ -47,6 +47,7 @@
     <string name="pref_notification_stats_category">Statistics</string>
     <string name="pref_notification_vibrator">Vibration preferences</string>
     <string name="messages_from">Messages from %s</string>
+    <string name="messages_from_cooldown">Messages from %s (on cooldown)</string>
 
     <string-array name="flows_list_placeholder"></string-array>
 </resources>

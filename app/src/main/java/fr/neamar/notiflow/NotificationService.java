@@ -260,6 +260,7 @@ public class NotificationService extends FirebaseMessagingService {
                 .setTicker(Html.fromHtml(msg))
                 .setCategory(NotificationCompat.CATEGORY_SOCIAL)
                 .setChannelId(flow)
+                .setOnlyAlertOnce(true)
                 .build();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

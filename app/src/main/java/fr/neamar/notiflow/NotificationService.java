@@ -14,6 +14,8 @@ import android.text.Html;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.Person;
+import androidx.core.graphics.drawable.IconCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -199,8 +201,8 @@ public class NotificationService extends FirebaseMessagingService {
 
         for (int i = pendingCount - 1; i >= 0; i--) {
             NotificationHelper.PreviousMessage previousMessage = prevMessages.get(i);
-
-            style.addMessage(previousMessage.message, previousMessage.date, previousMessage.author);
+            Person.Builder user = new Person.Builder().setName(previousMessage.author);
+            style.addMessage(previousMessage.message, previousMessage.date, user.build());
         }
 
         mBuilder

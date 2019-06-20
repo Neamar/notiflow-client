@@ -79,7 +79,7 @@ public class SettingActivity extends PreferenceActivity implements SharedPrefere
 
             // Create a new HttpClient and Post Header
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://notiflow.herokuapp.com/init");
+            HttpPost httppost = new HttpPost("https://notiflow.herokuapp.com/init");
 
             try {
                 // Add your data

@@ -63,8 +63,8 @@ public class NotificationService extends FirebaseMessagingService {
         Map<String, String> data = message.getData();
 
         // Post notification of received message.
-        Boolean isSpecial = data.containsKey("special");
-        Boolean isCleaner = data.containsKey("seen");
+        boolean isSpecial = data.containsKey("special");
+        boolean isCleaner = data.containsKey("seen");
         String flow = getOrDefault(data, "flow", "");
         String author = getOrDefault(data, "author", "");
         String content = getOrDefault(data, "content", "");
@@ -84,9 +84,9 @@ public class NotificationService extends FirebaseMessagingService {
             // Wrap content in <em> tag
             sendNotification(flow, "<b>" + author + "</b>: <em>" + content + "</em>", data);
         } else if (content.startsWith("    ")) {
-            sendNotification(flow, "<b>" + author + "</b>: <tt>" + content + "</tt>", data);
+            sendNotification(flow, "<b>" + author + "</b>: <tt>" + Html.escapeHtml(content) + "</tt>", data);
         } else {
-            sendNotification(flow, "<b>" + author + "</b>: " + content, data);
+            sendNotification(flow, "<b>" + author + "</b>: " + Html.escapeHtml(content), data);
         }
     }
 
@@ -133,12 +133,12 @@ public class NotificationService extends FirebaseMessagingService {
     private void sendNotification(String flow, String msg, Map<String, String> extras) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        Boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
-        Boolean isOwnMessage = getOrDefault(extras, "own", "false").equals("true");
+        boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
+        boolean isOwnMessage = getOrDefault(extras, "own", "false").equals("true");
 
         String notifyType = prefs.getString("prefNotifyType", "all"); // all | mentions | private
-        Boolean isMentioned = getOrDefault(extras, "mentioned", "false").equals("true");
-        Boolean isPrivate = getOrDefault(extras, "private", "false").equals("true");
+        boolean isMentioned = getOrDefault(extras, "mentioned", "false").equals("true");
+        boolean isPrivate = getOrDefault(extras, "private", "false").equals("true");
 
         Log.d(TAG, "New message, type " + notifyType + ", mentioned: " + isMentioned + ", private: " + isPrivate);
 
@@ -166,7 +166,7 @@ public class NotificationService extends FirebaseMessagingService {
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, flow);
 
-        Boolean silentMode = prefs.getBoolean("prefNotifySilent", false);
+        boolean silentMode = prefs.getBoolean("prefNotifySilent", false);
 
         if (silentMode) {
             Log.i(TAG, "Silent mode, no vibration.");
@@ -176,8 +176,8 @@ public class NotificationService extends FirebaseMessagingService {
             Long timeSinceLastNotification = now.getTime() - lastNotification.getTime();
 
             Integer frequency = Integer.parseInt(prefs.getString("prefNotifyVibrationFrequency", "15")) * 1000;
-            Boolean notifyWhenActive = prefs.getBoolean("prefNotifyWhenActive", false);
-            Boolean isActive = getOrDefault(extras, "active", "false").equals("true");
+            boolean notifyWhenActive = prefs.getBoolean("prefNotifyWhenActive", false);
+            boolean isActive = getOrDefault(extras, "active", "false").equals("true");
 
             if (timeSinceLastNotification < frequency) {
                 Log.i(TAG, "Skipping vibration -- cooldown in effect");
@@ -191,7 +191,7 @@ public class NotificationService extends FirebaseMessagingService {
         }
 
         ArrayList<String> prevMessages = NotificationHelper.getNotifications(getApplicationContext(), flow);
-        Integer pendingCount = prevMessages.size();
+        int pendingCount = prevMessages.size();
 
         if (pendingCount == 1) {
             // Only one notification : display using BigTextStyle for multiline.
@@ -218,8 +218,8 @@ public class NotificationService extends FirebaseMessagingService {
         if (!avatar.equals("")) {
 
             String sizeExpr = "(/\\d+/?)$";
-            Boolean isCloudFront = avatar.contains("cloudfront");
-            Boolean hasSize = avatar.matches(".*" + sizeExpr);
+            boolean isCloudFront = avatar.contains("cloudfront");
+            boolean hasSize = avatar.matches(".*" + sizeExpr);
 
             if (isCloudFront) {
                 if (!hasSize) {

@@ -10,9 +10,10 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.support.v4.app.NotificationCompat;
 import android.text.Html;
 import android.util.Log;
+
+import androidx.core.app.NotificationCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -82,11 +83,11 @@ public class NotificationService extends FirebaseMessagingService {
 
         if (isSpecial) {
             // Wrap content in <em> tag
-            sendNotification(flow, "<b>" + author + "</b>: <em>" + content + "</em>", data);
+            sendNotification(flow, author, content, data);
         } else if (content.startsWith("    ")) {
-            sendNotification(flow, "<b>" + author + "</b>: <tt>" + Html.escapeHtml(content) + "</tt>", data);
+            sendNotification(flow, author, content, data);
         } else {
-            sendNotification(flow, "<b>" + author + "</b>: " + Html.escapeHtml(content), data);
+            sendNotification(flow, author, content, data);
         }
     }
 
@@ -130,7 +131,7 @@ public class NotificationService extends FirebaseMessagingService {
     }
 
     // Put the message into a notification and post it.
-    private void sendNotification(String flow, String msg, Map<String, String> extras) {
+    private void sendNotification(String flow, String author, String msg, Map<String, String> extras) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
@@ -162,7 +163,7 @@ public class NotificationService extends FirebaseMessagingService {
         }
 
         Date lastNotification = NotificationHelper.getLastNotificationDate(getApplicationContext(), flow);
-        NotificationHelper.addNotification(getApplicationContext(), flow, msg);
+        NotificationHelper.addNotification(getApplicationContext(), flow, author, msg);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, flow);
 
@@ -190,28 +191,22 @@ public class NotificationService extends FirebaseMessagingService {
             }
         }
 
-        ArrayList<String> prevMessages = NotificationHelper.getNotifications(getApplicationContext(), flow);
+        ArrayList<NotificationHelper.PreviousMessage> prevMessages = NotificationHelper.getNotifications(getApplicationContext(), flow);
         int pendingCount = prevMessages.size();
 
-        if (pendingCount == 1) {
-            // Only one notification : display using BigTextStyle for multiline.
-            NotificationCompat.BigTextStyle style = new NotificationCompat.BigTextStyle()
-                    .bigText(Html.fromHtml(msg));
+        NotificationCompat.MessagingStyle style = new NotificationCompat.MessagingStyle(flow);
+        style.setConversationTitle(flow);
 
-            mBuilder.setStyle(style);
-        } else {
-            // More than one notification: use inbox style, displaying up to 5 messages
-            NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+        for (int i = pendingCount - 1; i >= 0; i--) {
+            NotificationHelper.PreviousMessage previousMessage = prevMessages.get(i);
 
-            for (int i = 0; i < pendingCount; i++) {
-                style.addLine(Html.fromHtml(prevMessages.get(i)));
-            }
-
-            mBuilder
-                    .setStyle(style)
-                    .setContentInfo(Integer.toString(pendingCount))
-                    .setNumber(pendingCount);
+            style.addMessage(previousMessage.message, previousMessage.date, previousMessage.author);
         }
+
+        mBuilder
+                .setStyle(style)
+                .setContentInfo(Integer.toString(pendingCount))
+                .setNumber(pendingCount);
 
         // Set large icon, which gets used for wearable background as well
         String avatar = getOrDefault(extras, "avatar", "");

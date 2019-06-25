@@ -8,11 +8,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.support.v4.app.NotificationCompat;
 import android.text.Html;
 import android.util.Log;
+
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.Person;
+import androidx.core.graphics.drawable.IconCompat;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -67,6 +71,7 @@ public class NotificationService extends FirebaseMessagingService {
         boolean isCleaner = data.containsKey("seen");
         String flow = getOrDefault(data, "flow", "");
         String author = getOrDefault(data, "author", "");
+        String avatar = getOrDefault(data, "avatar", "");
         String content = getOrDefault(data, "content", "");
 
         if (isCleaner) {
@@ -76,17 +81,17 @@ public class NotificationService extends FirebaseMessagingService {
 
         if (author.isEmpty()) {
             // Empty author.
-            // This can be used to create new kind of messages: leav "author" empty and the app will automatically drop it.
+            // This can be used to create new kind of messages: leave "author" empty and the app will automatically drop it.
             return;
         }
 
         if (isSpecial) {
             // Wrap content in <em> tag
-            sendNotification(flow, "<b>" + author + "</b>: <em>" + content + "</em>", data);
+            sendNotification(flow, author, avatar, content, data);
         } else if (content.startsWith("    ")) {
-            sendNotification(flow, "<b>" + author + "</b>: <tt>" + Html.escapeHtml(content) + "</tt>", data);
+            sendNotification(flow, author, avatar, content, data);
         } else {
-            sendNotification(flow, "<b>" + author + "</b>: " + Html.escapeHtml(content), data);
+            sendNotification(flow, author, avatar, content, data);
         }
     }
 
@@ -130,7 +135,7 @@ public class NotificationService extends FirebaseMessagingService {
     }
 
     // Put the message into a notification and post it.
-    private void sendNotification(String flow, String msg, Map<String, String> extras) {
+    private void sendNotification(String flow, String author, String avatar, String msg, Map<String, String> extras) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
@@ -162,7 +167,7 @@ public class NotificationService extends FirebaseMessagingService {
         }
 
         Date lastNotification = NotificationHelper.getLastNotificationDate(getApplicationContext(), flow);
-        NotificationHelper.addNotification(getApplicationContext(), flow, msg);
+        NotificationHelper.addNotification(getApplicationContext(), flow, author, avatar, msg);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, flow);
 
@@ -190,55 +195,27 @@ public class NotificationService extends FirebaseMessagingService {
             }
         }
 
-        ArrayList<String> prevMessages = NotificationHelper.getNotifications(getApplicationContext(), flow);
+        ArrayList<NotificationHelper.PreviousMessage> prevMessages = NotificationHelper.getNotifications(getApplicationContext(), flow);
         int pendingCount = prevMessages.size();
 
-        if (pendingCount == 1) {
-            // Only one notification : display using BigTextStyle for multiline.
-            NotificationCompat.BigTextStyle style = new NotificationCompat.BigTextStyle()
-                    .bigText(Html.fromHtml(msg));
+        NotificationCompat.MessagingStyle style = new NotificationCompat.MessagingStyle(flow);
+        style.setConversationTitle(flow);
 
-            mBuilder.setStyle(style);
-        } else {
-            // More than one notification: use inbox style, displaying up to 5 messages
-            NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+        for (int i = pendingCount - 1; i >= 0; i--) {
+            NotificationHelper.PreviousMessage previousMessage = prevMessages.get(i);
+            Person.Builder user = new Person.Builder().setName(previousMessage.author);
 
-            for (int i = 0; i < pendingCount; i++) {
-                style.addLine(Html.fromHtml(prevMessages.get(i)));
+            Bitmap avatarBitmap = getAvatar(previousMessage.avatar);
+            if(avatarBitmap != null) {
+                user.setIcon(IconCompat.createWithBitmap(avatarBitmap));
             }
-
-            mBuilder
-                    .setStyle(style)
-                    .setContentInfo(Integer.toString(pendingCount))
-                    .setNumber(pendingCount);
+            style.addMessage(previousMessage.message, previousMessage.date, user.build());
         }
 
-        // Set large icon, which gets used for wearable background as well
-        String avatar = getOrDefault(extras, "avatar", "");
-        if (!avatar.equals("")) {
-
-            String sizeExpr = "(/\\d+/?)$";
-            boolean isCloudFront = avatar.contains("cloudfront");
-            boolean hasSize = avatar.matches(".*" + sizeExpr);
-
-            if (isCloudFront) {
-                if (!hasSize) {
-                    avatar += "/400";
-                } else {
-                    avatar = avatar.replaceFirst(sizeExpr, "/400");
-                }
-            }
-
-            ImageLoader imageLoader = ImageLoader.getInstance();
-            Bitmap image = imageLoader.loadImageSync(avatar);
-
-            // scale for notification tray
-            int height = (int) getResources().getDimension(android.R.dimen.notification_large_icon_height);
-            int width = (int) getResources().getDimension(android.R.dimen.notification_large_icon_width);
-            Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
-
-            mBuilder.setLargeIcon(scaledImage);
-        }
+        mBuilder
+                .setStyle(style)
+                .setContentInfo(Integer.toString(pendingCount))
+                .setNumber(pendingCount);
 
         // Increase priority only for mentions and 1-1 conversations
         if (isMentioned || isPrivate) {
@@ -280,5 +257,33 @@ public class NotificationService extends FirebaseMessagingService {
             Log.i(TAG, "Added " + flow + " to known flows.");
             prefs.edit().putStringSet("knownFlows", knownFlows).apply();
         }
+    }
+
+    private Bitmap getAvatar(String avatar) {
+        if (avatar.equals("")) {
+            return null;
+        }
+
+        String sizeExpr = "(/\\d+/?)$";
+        boolean isCloudFront = avatar.contains("cloudfront");
+        boolean hasSize = avatar.matches(".*" + sizeExpr);
+
+        if (isCloudFront) {
+            if (!hasSize) {
+                avatar += "/400";
+            } else {
+                avatar = avatar.replaceFirst(sizeExpr, "/400");
+            }
+        }
+
+        ImageLoader imageLoader = ImageLoader.getInstance();
+        Bitmap image = imageLoader.loadImageSync(avatar);
+
+        // scale for notification tray
+        int height = (int) getResources().getDimension(android.R.dimen.notification_large_icon_height);
+        int width = (int) getResources().getDimension(android.R.dimen.notification_large_icon_width);
+        Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
+
+        return scaledImage;
     }
 }

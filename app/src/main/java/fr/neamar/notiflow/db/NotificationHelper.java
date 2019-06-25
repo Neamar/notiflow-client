@@ -12,14 +12,17 @@ public class NotificationHelper {
     public static class PreviousMessage {
         public String author;
         public String message;
+        public String avatar;
         public long date;
 
-        public PreviousMessage(String author, String message, long date) {
+        public PreviousMessage(String author, String message, String avatar, long date) {
             this.author = author;
             this.message = message;
+            this.avatar = avatar;
             this.date = date;
         }
     }
+
     private static SQLiteDatabase getDatabase(Context context) {
         DB db = new DB(context);
         return db.getReadableDatabase();
@@ -31,12 +34,12 @@ public class NotificationHelper {
      * @param flow
      * @param msg
      */
-    public static void addNotification(Context context, String flow, String author, String msg) {
+    public static void addNotification(Context context, String flow, String author, String avatar, String msg) {
         SQLiteDatabase db = getDatabase(context);
 
         ContentValues values = new ContentValues();
         values.put("flow", flow);
-        values.put("message", author + "||" + msg);
+        values.put("message", author + "||" + avatar + "||" + msg);
         values.put("date", new Date().getTime());
         db.insert("notifications", null, values);
         db.close();
@@ -62,11 +65,14 @@ public class NotificationHelper {
         while (!cursor.isAfterLast()) {
             String message = cursor.getString(0);
             String messageAuthor = "?";
-            if(message.contains("||")) {
+            String messageAvatar = "";
+            if (message.contains("||")) {
                 messageAuthor = message.substring(0, message.indexOf("||"));
                 message = message.substring(message.indexOf("||") + 2);
+                messageAvatar = message.substring(0, message.indexOf("||"));
+                message = message.substring(message.indexOf("||") + 2);
             }
-            flowNotifications.add(new PreviousMessage(messageAuthor, message, cursor.getLong(1)));
+            flowNotifications.add(new PreviousMessage(messageAuthor, message, messageAvatar, cursor.getLong(1)));
 
             cursor.moveToNext();
         }

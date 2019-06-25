@@ -71,6 +71,7 @@ public class NotificationService extends FirebaseMessagingService {
         boolean isCleaner = data.containsKey("seen");
         String flow = getOrDefault(data, "flow", "");
         String author = getOrDefault(data, "author", "");
+        String avatar = getOrDefault(data, "avatar", "");
         String content = getOrDefault(data, "content", "");
 
         if (isCleaner) {
@@ -86,11 +87,11 @@ public class NotificationService extends FirebaseMessagingService {
 
         if (isSpecial) {
             // Wrap content in <em> tag
-            sendNotification(flow, author, content, data);
+            sendNotification(flow, author, avatar, content, data);
         } else if (content.startsWith("    ")) {
-            sendNotification(flow, author, content, data);
+            sendNotification(flow, author, avatar, content, data);
         } else {
-            sendNotification(flow, author, content, data);
+            sendNotification(flow, author, avatar, content, data);
         }
     }
 
@@ -134,7 +135,7 @@ public class NotificationService extends FirebaseMessagingService {
     }
 
     // Put the message into a notification and post it.
-    private void sendNotification(String flow, String author, String msg, Map<String, String> extras) {
+    private void sendNotification(String flow, String author, String avatar, String msg, Map<String, String> extras) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean notifyOwnMessages = prefs.getBoolean("prefNotifyOwnMessages", false);
@@ -166,7 +167,7 @@ public class NotificationService extends FirebaseMessagingService {
         }
 
         Date lastNotification = NotificationHelper.getLastNotificationDate(getApplicationContext(), flow);
-        NotificationHelper.addNotification(getApplicationContext(), flow, author, msg);
+        NotificationHelper.addNotification(getApplicationContext(), flow, author, avatar, msg);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, flow);
 
@@ -204,9 +205,9 @@ public class NotificationService extends FirebaseMessagingService {
             NotificationHelper.PreviousMessage previousMessage = prevMessages.get(i);
             Person.Builder user = new Person.Builder().setName(previousMessage.author);
 
-            Bitmap avatar = getAvatar(getOrDefault(extras, "avatar", ""));
-            if(avatar != null) {
-                user.setIcon(IconCompat.createWithBitmap(avatar));
+            Bitmap avatarBitmap = getAvatar(previousMessage.avatar);
+            if(avatarBitmap != null) {
+                user.setIcon(IconCompat.createWithBitmap(avatarBitmap));
             }
             style.addMessage(previousMessage.message, previousMessage.date, user.build());
         }

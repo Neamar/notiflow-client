@@ -20,6 +20,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.mediarouter:mediarouter:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+
     implementation "com.google.firebase:firebase-messaging:11.8.0"
     implementation 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
 }

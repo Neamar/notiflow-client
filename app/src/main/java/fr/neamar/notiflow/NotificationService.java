@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.text.Html;
@@ -79,7 +80,7 @@ public class NotificationService extends FirebaseMessagingService {
 
         if (author.isEmpty()) {
             // Empty author.
-            // This can be used to create new kind of messages: leav "author" empty and the app will automatically drop it.
+            // This can be used to create new kind of messages: leave "author" empty and the app will automatically drop it.
             return;
         }
 
@@ -202,6 +203,11 @@ public class NotificationService extends FirebaseMessagingService {
         for (int i = pendingCount - 1; i >= 0; i--) {
             NotificationHelper.PreviousMessage previousMessage = prevMessages.get(i);
             Person.Builder user = new Person.Builder().setName(previousMessage.author);
+
+            Bitmap avatar = getAvatar(getOrDefault(extras, "avatar", ""));
+            if(avatar != null) {
+                user.setIcon(IconCompat.createWithBitmap(avatar));
+            }
             style.addMessage(previousMessage.message, previousMessage.date, user.build());
         }
 
@@ -209,33 +215,6 @@ public class NotificationService extends FirebaseMessagingService {
                 .setStyle(style)
                 .setContentInfo(Integer.toString(pendingCount))
                 .setNumber(pendingCount);
-
-        // Set large icon, which gets used for wearable background as well
-        String avatar = getOrDefault(extras, "avatar", "");
-        if (!avatar.equals("")) {
-
-            String sizeExpr = "(/\\d+/?)$";
-            boolean isCloudFront = avatar.contains("cloudfront");
-            boolean hasSize = avatar.matches(".*" + sizeExpr);
-
-            if (isCloudFront) {
-                if (!hasSize) {
-                    avatar += "/400";
-                } else {
-                    avatar = avatar.replaceFirst(sizeExpr, "/400");
-                }
-            }
-
-            ImageLoader imageLoader = ImageLoader.getInstance();
-            Bitmap image = imageLoader.loadImageSync(avatar);
-
-            // scale for notification tray
-            int height = (int) getResources().getDimension(android.R.dimen.notification_large_icon_height);
-            int width = (int) getResources().getDimension(android.R.dimen.notification_large_icon_width);
-            Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
-
-            mBuilder.setLargeIcon(scaledImage);
-        }
 
         // Increase priority only for mentions and 1-1 conversations
         if (isMentioned || isPrivate) {
@@ -277,5 +256,33 @@ public class NotificationService extends FirebaseMessagingService {
             Log.i(TAG, "Added " + flow + " to known flows.");
             prefs.edit().putStringSet("knownFlows", knownFlows).apply();
         }
+    }
+
+    private Bitmap getAvatar(String avatar) {
+        if (avatar.equals("")) {
+            return null;
+        }
+
+        String sizeExpr = "(/\\d+/?)$";
+        boolean isCloudFront = avatar.contains("cloudfront");
+        boolean hasSize = avatar.matches(".*" + sizeExpr);
+
+        if (isCloudFront) {
+            if (!hasSize) {
+                avatar += "/400";
+            } else {
+                avatar = avatar.replaceFirst(sizeExpr, "/400");
+            }
+        }
+
+        ImageLoader imageLoader = ImageLoader.getInstance();
+        Bitmap image = imageLoader.loadImageSync(avatar);
+
+        // scale for notification tray
+        int height = (int) getResources().getDimension(android.R.dimen.notification_large_icon_height);
+        int width = (int) getResources().getDimension(android.R.dimen.notification_large_icon_width);
+        Bitmap scaledImage = Bitmap.createScaledBitmap(image, width, height, false);
+
+        return scaledImage;
     }
 }
